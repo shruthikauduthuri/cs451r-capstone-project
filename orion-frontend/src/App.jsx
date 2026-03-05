@@ -2,34 +2,38 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import { useEffect, useState } from "react";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [workers, setWorkers] = useState([]);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/workers")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("Backend data:", data);
+        setWorkers(data);
+      })
+      .catch((err) => console.error("Error:", err));
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Team Orion</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div>
+      <h1>Workers</h1>
+
+      {workers.length === 0 ? (
+        <p>No workers yet.</p>
+      ) : (
+        workers.map((worker) => (
+          <div key={worker.id}>
+            <h3>{worker.name}</h3>
+            <p>Skill: {worker.skill}</p>
+            <p>Rate: ${worker.rate}/hr</p>
+          </div>
+        ))
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
