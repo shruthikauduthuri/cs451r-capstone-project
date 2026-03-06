@@ -1,0 +1,373 @@
+/* Page layout */
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.dashboard-subtitle {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dashboard-range-button,
+.dashboard-secondary-button {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+
+.dashboard-range-button {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.dashboard-range-button:hover,
+.dashboard-secondary-button:hover {
+  opacity: 0.9;
+}
+
+.dashboard-section {
+  background: transparent;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+  gap: 24px;
+}
+
+.dashboard-grid-item {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Shared widget styles */
+.panel {
+  background: #020617;
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid #1f2937;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.widget-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.widget-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.widget-data-source {
+  align-self: flex-start;
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px dashed #374151;
+  white-space: nowrap;
+}
+
+/* Summary cards */
+.summary-cards {
+  background: #020617;
+  border-radius: 16px;
+  padding: 16px 18px;
+  border: 1px solid #1f2937;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.summary-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .summary-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .summary-cards-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.summary-card {
+  background: radial-gradient(circle at top left, #1f2937, #020617);
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+  border: 1px solid #1f2937;
+}
+
+.summary-card-label {
+  margin: 0;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.summary-card-value {
+  margin: 6px 0 10px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.summary-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.summary-card-change {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.summary-card-change--up {
+  background: rgba(22, 163, 74, 0.18);
+  color: #4ade80;
+}
+
+.summary-card-change--down {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fca5a5;
+}
+
+.summary-card-helper {
+  color: #6b7280;
+}
+
+/* Transactions */
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.transactions-header {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr 1fr 1.1fr 1.1fr;
+  gap: 8px;
+  padding: 6px 4px;
+  color: #9ca3af;
+  border-bottom: 1px solid #1f2937;
+}
+
+.transactions-rows {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.transactions-row {
+  display: grid;
+  grid-template-columns: 2fr 1.3fr 1fr 1.1fr 1.1fr;
+  gap: 8px;
+  padding: 8px 4px;
+  border-bottom: 1px solid #020617;
+}
+
+.transactions-row:nth-child(2n) {
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.transactions-name {
+  font-weight: 500;
+}
+
+.transactions-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-amount--credit {
+  color: #4ade80;
+}
+
+.transactions-amount--debit {
+  color: #f97373;
+}
+
+.transactions-status {
+  text-align: right;
+  color: #9ca3af;
+}
+
+@media (max-width: 700px) {
+  .transactions-header,
+  .transactions-row {
+    grid-template-columns: 1.8fr 1.3fr 0.9fr 1fr;
+  }
+
+  .transactions-status {
+    display: none;
+  }
+}
+
+/* Categories */
+.category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.category-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.category-name {
+  color: #e5e7eb;
+}
+
+.category-amount {
+  font-variant-numeric: tabular-nums;
+  color: #e5e7eb;
+}
+
+.category-bar-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #020617;
+  overflow: hidden;
+}
+
+.category-bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #4f46e5);
+}
+
+.category-percentage {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Goals */
+.goals-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.goals-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.goals-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.goals-name {
+  margin: 0;
+  font-size: 14px;
+}
+
+.goals-meta {
+  margin: 2px 0 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.goals-progress-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.16);
+  color: #bfdbfe;
+}
+
+.goals-bar-track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: #020617;
+  overflow: hidden;
+}
+
+.goals-bar-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #22c55e, #4f46e5);
+}
+
+.goals-current {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
