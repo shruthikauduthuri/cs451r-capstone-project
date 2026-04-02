@@ -8,26 +8,16 @@ using ColumnAttribute = Supabase.Postgrest.Attributes.ColumnAttribute;
 
 namespace api.Models
 {
-    [Supabase.Postgrest.Attributes.Table("Transaction")]
-    public class Transaction : BaseModel
+    [Supabase.Postgrest.Attributes.Table("User")]
+    public class Profile : BaseModel
     {
         [PrimaryKey("id", false)]
         public long Id { get; set; }
-        
-        [Column("user_id")]
-        public long User_id { get; set; }
 
-        [Column("description")]
-        public string Description { get; set; } = "none";
-
-        [Column("category")]
-        public string Category { get; set; } = string.Empty;
-
-        [Column("amount")]
-        public double Amount { get; set; }
+        [Column("name")]
+        public string Name { get; set; } = string.Empty;
 
         [Column("created_at")]
         public DateTimeOffset Created_at { get; set; }
-
     }
 }
