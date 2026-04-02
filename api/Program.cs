@@ -10,8 +10,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<Supabase.Client>(_ => 
     new Supabase.Client(
-        builder.Configuration["https://biezkxdokfxyhonnkgpe.supabase.co/"] ?? throw new InvalidOperationException("Supabase URL is not configured"),
-        builder.Configuration["sb_secret_IGZlyOiHrRi5SAu0QXweCg_iyoeqAf-"],
+        builder.Configuration["SupabaseUrl"] ?? throw new InvalidOperationException("Supabase URL is not configured"),
+        builder.Configuration["SupabaseKey"] ?? throw new InvalidOperationException("Supabase Key is not configured"),
         new SupabaseOptions
         {
             AutoRefreshToken = true,
