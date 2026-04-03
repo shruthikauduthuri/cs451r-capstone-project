@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
+import { downloadTextReport } from "../utils/downloadReport";
+import "./Transactions.css";
 
 const TYPE_OPTIONS = ["expense", "income"];
+const MEMBERS = ["Alex", "Sarah", "Jake"];
 
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", {
@@ -10,32 +13,45 @@ function formatMoney(n) {
   }).format(n);
 }
 
+function formatDisplayDate(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function monthKey(iso) {
+  const d = new Date(iso + "T12:00:00");
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+const MONTH_OPTIONS = [
+  { key: "2026-04", label: "April 2026" },
+  { key: "2026-03", label: "March 2026" },
+  { key: "2026-02", label: "February 2026" },
+];
+
 export default function Transactions() {
   const { categories, transactions, addTransaction, removeTransaction } = useOrionStore();
 
+  const [selectedMonth, setSelectedMonth] = useState("2026-04");
   const [form, setForm] = useState({
     type: "expense",
     amount: "",
     category: "Groceries",
-    date: new Date().toISOString().slice(0, 10),
+    date: "2026-04-03",
     description: "",
+    member: "Sarah",
   });
 
+  const filtered = useMemo(
+    () => transactions.filter((t) => monthKey(t.date) === selectedMonth),
+    [transactions, selectedMonth]
+  );
+
   const totals = useMemo(() => {
-    const income = transactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + Number(t.amount), 0);
-
-    const expense = transactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + Number(t.amount), 0);
-
-    return {
-      income,
-      expense,
-      net: income - expense,
-    };
-  }, [transactions]);
+    const income = filtered.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+    const expense = filtered.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+    return { income, expense };
+  }, [filtered]);
 
   function onChange(e) {
     const { name, value } = e.target;
@@ -44,250 +60,176 @@ export default function Transactions() {
 
   function onSubmit(e) {
     e.preventDefault();
-
     const amountNum = Number(form.amount);
     if (!amountNum || amountNum <= 0) {
       alert("Please enter a valid amount greater than 0.");
       return;
     }
-
-    const newTx = {
+    addTransaction({
       id: crypto.randomUUID(),
       type: form.type,
       amount: amountNum,
       category: form.category,
       date: form.date,
       description: form.description.trim() || "(no description)",
-    };
-
-    addTransaction(newTx);
-
-    // Reset amount/description only (keep type/category/date for speed)
+      member: form.member,
+    });
     setForm((prev) => ({ ...prev, amount: "", description: "" }));
   }
 
+  function handleDownloadReport() {
+    downloadTextReport(`orion-transactions-${selectedMonth}.txt`, [
+      "Orion — Transactions report",
+      `Period: ${MONTH_OPTIONS.find((m) => m.key === selectedMonth)?.label || selectedMonth}`,
+      "",
+      `Total Income: ${formatMoney(totals.income)}`,
+      `Total Expenses: ${formatMoney(totals.expense)}`,
+      "",
+      "Transactions:",
+      ...filtered.map(
+        (t) =>
+          `  ${formatDisplayDate(t.date)} · ${t.category} · ${t.type} · ${formatMoney(Number(t.amount))} · ${t.member || "—"}`
+      ),
+    ]);
+  }
+
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <header style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h1 style={{ margin: 0 }}>Transactions</h1>
-        <span style={{ opacity: 0.8 }}>
-          Data Source: <strong>GET /api/transactions</strong>
-        </span>
+    <div className="tx-page">
+      <header className="orion-page-header tx-header">
+        <div>
+          <h1 className="orion-page-title">Transactions</h1>
+          <p className="orion-page-sub">Track all income and expenses</p>
+        </div>
+        <button type="button" className="btn-gradient tx-add-btn" onClick={() => document.getElementById("tx-add-form")?.scrollIntoView({ behavior: "smooth" })}>
+          <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+          Add Transaction
+        </button>
       </header>
 
-      {/* Summary */}
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
-        }}
-      >
-        <div style={cardStyle}>
-          <div style={labelStyle}>Income</div>
-          <div style={valueStyle}>{formatMoney(totals.income)}</div>
-        </div>
-        <div style={cardStyle}>
-          <div style={labelStyle}>Expenses</div>
-          <div style={valueStyle}>{formatMoney(totals.expense)}</div>
-        </div>
-        <div style={cardStyle}>
-          <div style={labelStyle}>Net</div>
-          <div style={valueStyle}>{formatMoney(totals.net)}</div>
-        </div>
-      </section>
-
-      {/* Add Transaction */}
-      <section style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-          <h2 style={{ marginTop: 0, marginBottom: 12 }}>Add Transaction</h2>
-          <span style={{ opacity: 0.8, alignSelf: "center" }}>
-            Future Action: <strong>POST /api/transactions</strong>
-          </span>
-        </div>
-
-        <form
-          onSubmit={onSubmit}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-            gap: 12,
-            alignItems: "end",
-          }}
-        >
-          {/* Type */}
-          <div style={{ gridColumn: "span 3" }}>
-            <label style={fieldLabel}>Type</label>
-            <select name="type" value={form.type} onChange={onChange} style={fieldInput}>
-              {TYPE_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+      <article className="orion-card tx-main-card">
+        <div className="tx-card-head">
+          <div>
+            <h2 className="orion-card-title">All Transactions</h2>
+            <span className="orion-badge tx-inline-badge">Transaction list from API</span>
           </div>
+        </div>
 
-          {/* Amount */}
-          <div style={{ gridColumn: "span 3" }}>
-            <label style={fieldLabel}>Amount</label>
-            <input
-              name="amount"
-              value={form.amount}
-              onChange={onChange}
-              style={fieldInput}
-              placeholder="0.00"
-              inputMode="decimal"
-            />
-          </div>
-
-          {/* Category */}
-          <div style={{ gridColumn: "span 6" }}>
-            <label style={fieldLabel}>Category</label>
+        <div className="tx-filter-row">
+          <div>
+            <p className="tx-filter-label">Select Month</p>
             <select
-              name="category"
-              value={form.category}
-              onChange={onChange}
-              style={fieldInput}
+              className="tx-month-select"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
             >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
+              {MONTH_OPTIONS.map((m) => (
+                <option key={m.key} value={m.key}>
+                  {m.label}
                 </option>
               ))}
             </select>
-            <div style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>
-              Examples: Vacation, Groceries, Vendors
-            </div>
           </div>
-
-          {/* Date + Add button row (no overlap) */}
-          <div style={{ gridColumn: "span 12", display: "flex", gap: 12, alignItems: "end" }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <label style={fieldLabel}>Date</label>
-              <input
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={onChange}
-                style={fieldInput}
-              />
-            </div>
-
-            <div style={{ width: 220 }}>
-              <label style={fieldLabel}>&nbsp;</label>
-              <button type="submit" style={primaryBtn}>
-                Add
-              </button>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div style={{ gridColumn: "span 12" }}>
-            <label style={fieldLabel}>Description</label>
-            <input
-              name="description"
-              value={form.description}
-              onChange={onChange}
-              style={fieldInput}
-              placeholder="e.g., Costco, rent, paycheck..."
-            />
-          </div>
-        </form>
-      </section>
-
-      {/* Table */}
-      <section style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 style={{ marginTop: 0 }}>Transaction List</h2>
-          <span style={{ opacity: 0.8 }}>
-            Future Action: <strong>DELETE /api/transactions/:id</strong>
-          </span>
+          <button type="button" className="btn-outline-light" onClick={handleDownloadReport}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Download Report
+          </button>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ textAlign: "left", opacity: 0.9 }}>
-                <th style={thStyle}>Date</th>
-                <th style={thStyle}>Type</th>
-                <th style={thStyle}>Category</th>
-                <th style={thStyle}>Description</th>
-                <th style={thStyle}>Amount</th>
-                <th style={thStyle}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((t) => (
-                <tr key={t.id} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-                  <td style={tdStyle}>{t.date}</td>
-                  <td style={tdStyle}>{t.type}</td>
-                  <td style={tdStyle}>{t.category}</td>
-                  <td style={tdStyle}>{t.description}</td>
-                  <td style={tdStyle}>{formatMoney(Number(t.amount))}</td>
-                  <td style={tdStyle}>
-                    <button onClick={() => removeTransaction(t.id)} style={ghostBtn}>
-                      Remove
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {transactions.length === 0 && (
-                <tr>
-                  <td style={tdStyle} colSpan={6}>
-                    No transactions yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="tx-totals">
+          <div className="tx-total tx-total--in">
+            <p className="tx-total-label">Total Income</p>
+            <p className="tx-total-value">{formatMoney(totals.income)}</p>
+          </div>
+          <div className="tx-total tx-total--out">
+            <p className="tx-total-label">Total Expenses</p>
+            <p className="tx-total-value">{formatMoney(totals.expense)}</p>
+          </div>
         </div>
-      </section>
+
+        <ul className="tx-list">
+          {filtered.map((t) => {
+            const isIncome = t.type === "income";
+            return (
+              <li key={t.id} className="tx-row">
+                <div className="tx-row-left">
+                  <span className={isIncome ? "tx-icon tx-icon--in" : "tx-icon tx-icon--out"}>{isIncome ? "+" : "−"}</span>
+                  <div>
+                    <p className="tx-row-title">{t.category}</p>
+                    <p className="tx-row-meta">
+                      {formatDisplayDate(t.date)} · {t.member || "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="tx-row-right">
+                  <span className={isIncome ? "tx-amt tx-amt--in" : "tx-amt tx-amt--out"}>
+                    {isIncome ? "+" : "-"}
+                    {formatMoney(Number(t.amount))}
+                  </span>
+                  <button type="button" className="tx-remove" onClick={() => removeTransaction(t.id)} title="Remove">
+                    ×
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+          {filtered.length === 0 && <li className="tx-empty">No transactions for this month.</li>}
+        </ul>
+
+        <div id="tx-add-form" className="tx-add-section">
+          <h3 className="tx-add-title">Add transaction</h3>
+          <form className="tx-form" onSubmit={onSubmit}>
+            <div className="tx-form-grid">
+              <label className="tx-f">
+                Type
+                <select name="type" value={form.type} onChange={onChange}>
+                  {TYPE_OPTIONS.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="tx-f">
+                Amount
+                <input name="amount" value={form.amount} onChange={onChange} placeholder="0.00" inputMode="decimal" />
+              </label>
+              <label className="tx-f">
+                Category
+                <select name="category" value={form.category} onChange={onChange}>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="tx-f">
+                Date
+                <input type="date" name="date" value={form.date} onChange={onChange} />
+              </label>
+              <label className="tx-f">
+                Member
+                <select name="member" value={form.member} onChange={onChange}>
+                  {MEMBERS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="tx-f tx-f--wide">
+                Note
+                <input name="description" value={form.description} onChange={onChange} placeholder="Optional" />
+              </label>
+            </div>
+            <button type="submit" className="btn-gradient tx-submit">
+              Save transaction
+            </button>
+          </form>
+        </div>
+      </article>
     </div>
   );
 }
-
-/* Simple inline styling for Sprint 1 demo */
-const cardStyle = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 14,
-  padding: 16,
-};
-
-const labelStyle = { fontSize: 12, opacity: 0.8 };
-const valueStyle = { fontSize: 22, fontWeight: 700, marginTop: 6 };
-
-const fieldLabel = { display: "block", fontSize: 12, opacity: 0.85, marginBottom: 6 };
-
-const fieldInput = {
-  width: "100%",
-  minWidth: 0, // ✅ IMPORTANT: prevents overlap in grids/flex
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(0,0,0,0.15)",
-  color: "inherit",
-};
-
-const primaryBtn = {
-  width: "100%",
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "none",
-  background: "#2563eb",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const ghostBtn = {
-  padding: "8px 10px",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-};
-
-const thStyle = { padding: "10px 8px", fontSize: 12, textTransform: "uppercase", letterSpacing: 0.6 };
-const tdStyle = { padding: "12px 8px", fontSize: 14, opacity: 0.95 };

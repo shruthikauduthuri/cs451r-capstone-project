@@ -1,0 +1,126 @@
+.hh-page {
+  max-width: 720px;
+}
+
+.hh-invite {
+  white-space: nowrap;
+}
+
+.hh-card {
+  margin-bottom: 20px;
+}
+
+.hh-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hh-members {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hh-member {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hh-member:last-child {
+  border-bottom: none;
+}
+
+.hh-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hh-member-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.hh-member-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.hh-member-email {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.hh-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  flex-shrink: 0;
+}
+
+.hh-role--admin {
+  background: #111827;
+  color: #fff;
+}
+
+.hh-join-desc {
+  margin: 8px 0 20px;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.hh-code-box {
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  background: linear-gradient(90deg, #4f46e5, #9333ea);
+  margin-bottom: 16px;
+}
+
+.hh-code-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hh-code-value {
+  margin: 8px 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+
+.hh-copy {
+  width: 100%;
+  justify-content: center;
+}

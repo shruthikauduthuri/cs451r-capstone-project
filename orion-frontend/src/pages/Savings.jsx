@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
+import { downloadTextReport } from "../utils/downloadReport";
+import "./Savings.css";
 
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", {
@@ -29,7 +31,6 @@ export default function Savings() {
 
   function onSubmit(e) {
     e.preventDefault();
-
     const targetNum = Number(form.targetAmount);
     if (!form.name.trim()) return alert("Goal name is required.");
     if (!targetNum || targetNum <= 0) return alert("Target amount must be > 0.");
@@ -40,123 +41,84 @@ export default function Savings() {
       targetAmount: targetNum,
       currentAmount: 0,
       linkedCategory: form.linkedCategory,
+      description: "",
+      contributors: [],
     });
 
     setForm({ name: "", targetAmount: "", linkedCategory: form.linkedCategory });
   }
 
+  function handleDownloadReport() {
+    downloadTextReport(`orion-savings-goals.txt`, [
+      "Orion — Savings goals",
+      `Total saved across goals: ${formatMoney(totalSaved)}`,
+      "",
+      ...goals.map((g) => {
+        const p = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
+        return `${g.name}: ${formatMoney(g.currentAmount)} / ${formatMoney(g.targetAmount)} (${p}%)`;
+      }),
+    ]);
+  }
+
   return (
-    <div style={{ display: "grid", gap: 16 }}>
-      <header style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <h1 style={{ margin: 0 }}>Savings Goals</h1>
-        <span style={{ opacity: 0.8 }}>
-          Data Source: <strong>GET /api/goals</strong>
-        </span>
+    <div className="sv-page">
+      <header className="orion-page-header">
+        <div>
+          <h1 className="orion-page-title">Savings Goals</h1>
+          <p className="orion-page-sub">Track shared household savings goals</p>
+          <span className="orion-badge orion-badge--dark" style={{ marginTop: 10 }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M2 12h20" />
+            </svg>
+            Goals data from API
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button type="button" className="btn-outline-light" onClick={handleDownloadReport}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Download Report
+          </button>
+          <button type="button" className="btn-gradient" onClick={() => document.getElementById("sv-add")?.scrollIntoView({ behavior: "smooth" })}>
+            + Add Goal
+          </button>
+        </div>
       </header>
 
-      <section style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 style={{ marginTop: 0 }}>Overview</h2>
-          <span style={{ opacity: 0.8 }}>
-            Total Saved (dummy): <strong>{formatMoney(totalSaved)}</strong>
-          </span>
-        </div>
-        <p style={{ marginTop: 6, opacity: 0.85 }}>
-          Goals can be linked to a category (ex: Vacation) to show where contributions might come from
-          later via automated rules.
-        </p>
-      </section>
+      <div className="sv-stack">
+        {goals.map((g) => (
+          <GoalCard key={g.id} goal={g} onRemove={() => removeGoal(g.id)} onContribute={(amt) => contributeToGoal(g.id, amt)} />
+        ))}
+        {goals.length === 0 && <p className="sv-empty">No goals yet — create one below.</p>}
+      </div>
 
-      <section style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-          <h2 style={{ marginTop: 0, marginBottom: 12 }}>Create a Goal</h2>
-          <span style={{ opacity: 0.8, alignSelf: "center" }}>
-            Future Action: <strong>POST /api/goals</strong>
-          </span>
-        </div>
-
-        {/* ✅ 12-col grid prevents overlap */}
-        <form
-          onSubmit={onSubmit}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-            gap: 12,
-            alignItems: "end",
-          }}
-        >
-          {/* Goal Name */}
-          <div style={{ gridColumn: "span 6" }}>
-            <label style={fieldLabel}>Goal Name</label>
-            <input
-              name="name"
-              value={form.name}
-              onChange={onChange}
-              style={fieldInput}
-              placeholder="e.g., Vacation Fund"
-            />
-          </div>
-
-          {/* Target Amount */}
-          <div style={{ gridColumn: "span 3" }}>
-            <label style={fieldLabel}>Target Amount</label>
-            <input
-              name="targetAmount"
-              value={form.targetAmount}
-              onChange={onChange}
-              style={fieldInput}
-              placeholder="2000"
-              inputMode="decimal"
-            />
-          </div>
-
-          {/* Linked Category */}
-          <div style={{ gridColumn: "span 3" }}>
-            <label style={fieldLabel}>Linked Category</label>
-            <select
-              name="linkedCategory"
-              value={form.linkedCategory}
-              onChange={onChange}
-              style={fieldInput}
-            >
+      <section id="sv-add" className="orion-card sv-form-card">
+        <h2 className="orion-card-title">Create a goal</h2>
+        <form className="sv-form" onSubmit={onSubmit}>
+          <label className="sv-f">
+            Goal name
+            <input name="name" value={form.name} onChange={onChange} placeholder="e.g., Emergency fund" required />
+          </label>
+          <label className="sv-f">
+            Target amount
+            <input name="targetAmount" value={form.targetAmount} onChange={onChange} placeholder="2000" inputMode="decimal" required />
+          </label>
+          <label className="sv-f">
+            Linked category
+            <select name="linkedCategory" value={form.linkedCategory} onChange={onChange}>
               {categories.map((c) => (
                 <option key={c} value={c}>
                   {c}
                 </option>
               ))}
             </select>
-          </div>
-
-          {/* Button row (full width) */}
-          <div style={{ gridColumn: "span 12", display: "flex", justifyContent: "flex-end" }}>
-            <button type="submit" style={{ ...primaryBtn, width: 220 }}>
-              Create
-            </button>
-          </div>
+          </label>
+          <button type="submit" className="btn-gradient sv-create">
+            Create goal
+          </button>
         </form>
-      </section>
-
-      <section style={cardStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-          <h2 style={{ marginTop: 0 }}>Your Goals</h2>
-          <span style={{ opacity: 0.8 }}>
-            Future Actions: <strong>PATCH /api/goals/:id</strong> •{" "}
-            <strong>DELETE /api/goals/:id</strong>
-          </span>
-        </div>
-
-        <div style={{ display: "grid", gap: 12 }}>
-          {goals.map((g) => (
-            <GoalCard
-              key={g.id}
-              goal={g}
-              onRemove={() => removeGoal(g.id)}
-              onContribute={(amt) => contributeToGoal(g.id, amt)}
-            />
-          ))}
-
-          {goals.length === 0 && <div>No goals yet — create your first goal.</div>}
-        </div>
       </section>
     </div>
   );
@@ -164,11 +126,9 @@ export default function Savings() {
 
 function GoalCard({ goal, onRemove, onContribute }) {
   const [amount, setAmount] = useState("");
-
-  const progress = Math.min(
-    100,
-    Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100)
-  );
+  const progress = Math.min(100, Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100));
+  const remaining = Math.max(0, Number(goal.targetAmount) - Number(goal.currentAmount));
+  const contributors = goal.contributors?.length ? goal.contributors : ["Sarah", "Alex", "Jake"];
 
   function submitContribution(e) {
     e.preventDefault();
@@ -177,105 +137,60 @@ function GoalCard({ goal, onRemove, onContribute }) {
   }
 
   return (
-    <div
-      style={{
-        padding: 14,
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(0,0,0,0.10)",
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>{goal.name}</div>
-          <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-            Linked Category: <strong>{goal.linkedCategory || "None"}</strong>
+    <article className="orion-card sv-goal">
+      <div className="sv-goal-head">
+        <div className="sv-goal-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="6" />
+            <circle cx="12" cy="12" r="2" />
+          </svg>
+        </div>
+        <div className="sv-goal-title-block">
+          <div className="sv-goal-title-row">
+            <h3 className="sv-goal-name">{goal.name}</h3>
+            <button type="button" className="sv-remove" onClick={onRemove}>
+              Remove
+            </button>
           </div>
-        </div>
-
-        <button onClick={onRemove} style={ghostBtn}>
-          Remove
-        </button>
-      </div>
-
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
-        <div style={{ opacity: 0.9 }}>
-          Saved: <strong>{formatMoney(goal.currentAmount)}</strong>
-        </div>
-        <div style={{ opacity: 0.9 }}>
-          Target: <strong>{formatMoney(goal.targetAmount)}</strong>
+          {goal.description ? <p className="sv-goal-desc">{goal.description}</p> : null}
         </div>
       </div>
 
-      <div style={{ marginTop: 10 }}>
-        <div style={{ height: 10, background: "rgba(255,255,255,0.10)", borderRadius: 999 }}>
-          <div
-            style={{
-              height: 10,
-              width: `${progress}%`,
-              background: "#22c55e",
-              borderRadius: 999,
-            }}
-          />
+      <div className="sv-goal-stats">
+        <div>
+          <p className="sv-goal-amt">{formatMoney(goal.currentAmount)}</p>
+          <p className="sv-goal-of">of {formatMoney(goal.targetAmount)} goal</p>
         </div>
-        <div style={{ fontSize: 12, opacity: 0.8, marginTop: 6 }}>{progress}%</div>
+        <span className="sv-goal-pct">{progress}%</span>
       </div>
 
-      {/* ✅ Prevent overlap in flex row */}
-      <form onSubmit={submitContribution} style={{ display: "flex", gap: 10, marginTop: 12 }}>
+      <div className="sv-goal-bar">
+        <div className="sv-goal-bar-fill" style={{ width: `${progress}%` }} />
+      </div>
+      <p className="sv-goal-remain">{formatMoney(remaining)} remaining to reach goal</p>
+
+      <p className="sv-contrib-label">Contributors:</p>
+      <p className="sv-contrib-names">
+        {contributors.map((n) => (
+          <span key={n} className="sv-contrib-link">
+            {n}
+          </span>
+        ))}
+      </p>
+
+      <form className="sv-contrib-form" onSubmit={submitContribution}>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          style={{ ...fieldInput, flex: 1, minWidth: 0 }}
           placeholder="Contribution amount"
           inputMode="decimal"
+          className="sv-contrib-input"
         />
-        <button type="submit" style={{ ...primaryBtn, width: 160 }}>
-          Add
+        <button type="submit" className="btn-gradient sv-contrib-btn">
+          $ Add Contribution
         </button>
       </form>
-
-      <div style={{ fontSize: 12, opacity: 0.75, marginTop: 8 }}>
-        Future Action: <strong>POST /api/goals/{goal.id}/contributions</strong>
-      </div>
-    </div>
+    </article>
   );
 }
-
-const cardStyle = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 14,
-  padding: 16,
-};
-
-const fieldLabel = { display: "block", fontSize: 12, opacity: 0.85, marginBottom: 6 };
-
-const fieldInput = {
-  width: "100%",
-  minWidth: 0, 
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "rgba(0,0,0,0.15)",
-  color: "inherit",
-};
-
-const primaryBtn = {
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "none",
-  background: "#2563eb",
-  color: "#fff",
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const ghostBtn = {
-  padding: "8px 10px",
-  borderRadius: 10,
-  border: "1px solid rgba(255,255,255,0.12)",
-  background: "transparent",
-  color: "inherit",
-  cursor: "pointer",
-};
