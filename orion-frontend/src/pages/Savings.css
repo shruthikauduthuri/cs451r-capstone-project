@@ -142,11 +142,24 @@
 .sv-contrib-input {
   width: 100%;
   box-sizing: border-box;
-  padding: 12px 14px;
+  min-height: 44px;
+  padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
-  font-size: 0.9375rem;
+  border: 2px solid #5b21b6;
+  font-size: 0.875rem;
   font-family: inherit;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+.sv-contrib-input::placeholder {
+  color: #6b7280;
+}
+
+.sv-contrib-input:focus {
+  outline: none;
+  border-color: #4c1d95;
+  box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.2);
 }
 
 .sv-contrib-btn {
@@ -156,13 +169,18 @@
 
 .sv-form-card {
   max-width: 720px;
+  color-scheme: light;
+}
+
+.sv-goal {
+  color-scheme: light;
 }
 
 .sv-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  align-items: end;
+  gap: 16px;
+  align-items: start;
 }
 
 @media (max-width: 560px) {
@@ -178,15 +196,43 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #374151;
+  min-width: 0;
 }
 
-.sv-f input,
-.sv-f select {
+.sv-form-card .sv-f input,
+.sv-form-card .sv-f select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
+  border: 2px solid #5b21b6;
   font-size: 0.875rem;
   font-family: inherit;
+  color: #111827;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+.sv-form-card .sv-f input::placeholder {
+  color: #6b7280;
+}
+
+.sv-form-card .sv-f select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.sv-form-card .sv-f select option {
+  color: #111827;
+  background: #ffffff;
+}
+
+.sv-form-card .sv-f input:focus,
+.sv-form-card .sv-f select:focus {
+  outline: none;
+  border-color: #4c1d95;
+  box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.2);
 }
 
 .sv-create {

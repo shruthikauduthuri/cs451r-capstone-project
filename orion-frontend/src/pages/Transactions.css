@@ -12,6 +12,8 @@
 
 .tx-main-card {
   padding-bottom: 28px;
+  /* Root app uses color-scheme: dark; keep native controls readable on white cards */
+  color-scheme: light;
 }
 
 .tx-card-head {
@@ -232,7 +234,8 @@
 .tx-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 16px;
+  align-items: start;
 }
 
 @media (max-width: 600px) {
@@ -248,20 +251,52 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #374151;
+  min-width: 0;
 }
 
 .tx-f--wide {
   grid-column: 1 / -1;
 }
 
-.tx-f input,
-.tx-f select {
+/* Add-transaction: force light native controls (root uses color-scheme: dark) */
+.tx-add-section {
+  color-scheme: light;
+}
+
+.tx-add-section .tx-f input,
+.tx-add-section .tx-f select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
+  border: 2px solid #5b21b6;
   font-size: 0.875rem;
   font-family: inherit;
   color: #111827;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+.tx-add-section .tx-f input::placeholder {
+  color: #6b7280;
+}
+
+.tx-add-section .tx-f select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.tx-add-section .tx-f select option {
+  color: #111827;
+  background: #ffffff;
+}
+
+.tx-add-section .tx-f input:focus,
+.tx-add-section .tx-f select:focus {
+  outline: none;
+  border-color: #4c1d95;
+  box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.2);
 }
 
 .tx-submit {
