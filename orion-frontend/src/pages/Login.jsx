@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import "./Login.css";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const [searchParams] = useSearchParams();
+  const [email, setEmail] = useState(() => searchParams.get("email")?.trim() ?? "");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
@@ -45,9 +46,9 @@ export default function Login() {
             <div className="login-field">
               <div className="login-row-labels">
                 <label htmlFor="password">Password</label>
-                <a href="#forgot" className="login-link">
+                <Link to="/forgot-password" className="login-link">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <input
                 id="password"
@@ -67,9 +68,9 @@ export default function Login() {
 
           <p className="login-footer">
             Don&apos;t have an account?{" "}
-            <a href="#create" className="login-link login-link--emph">
+            <Link to="/create-account" className="login-link login-link--emph">
               Create account
-            </a>
+            </Link>
           </p>
         </div>
       </div>

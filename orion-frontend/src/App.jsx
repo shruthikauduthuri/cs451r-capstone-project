@@ -8,6 +8,8 @@ import Savings from "./pages/Savings";
 import Household from "./pages/Household";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import CreateAccount from "./pages/CreateAccount";
 
 export default function App() {
   return (
@@ -16,6 +18,8 @@ export default function App() {
         {/* Landing / auth */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/create-account" element={<CreateAccount />} />
 
         {/* App shell with sidebar */}
         <Route element={<MainLayout />}>
