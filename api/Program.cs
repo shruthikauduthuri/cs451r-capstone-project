@@ -8,8 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<Supabase.Client>(_ => 
-    new Supabase.Client(
+builder.Services.AddScoped(_ => 
+    new Client(
         builder.Configuration["SupabaseUrl"] ?? throw new InvalidOperationException("Supabase URL is not configured"),
         builder.Configuration["SupabaseKey"] ?? throw new InvalidOperationException("Supabase Key is not configured"),
         new SupabaseOptions
@@ -30,7 +30,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/users", async (Supabase.Client supabase, CreateUserRequest request) =>
+app.MapPost("/users", async (Client supabase, CreateUserRequest request) =>
 {
     var response = await supabase.From<User>().Insert(new User
     {
@@ -47,7 +47,7 @@ app.MapPost("/users", async (Supabase.Client supabase, CreateUserRequest request
     return Results.Ok(createdUser.Id);
 });
 
-app.MapGet("/users/{id}", async (Supabase.Client supabase, long id) =>
+app.MapGet("/users/{id}", async (Client supabase, long id) =>
 {
     var response = await supabase.From<User>().Where(u => u.Id == id).Get();
     var user = response.Models.FirstOrDefault();
@@ -67,7 +67,7 @@ app.MapGet("/users/{id}", async (Supabase.Client supabase, long id) =>
     return Results.Ok(userResponse);
 });
 
-app.MapDelete("/users/{id}", async (Supabase.Client supabase, long id) =>
+app.MapDelete("/users/{id}", async (Client supabase, long id) =>
 {
     await supabase.From<User>().Where(u => u.Id == id).Delete();
     return Results.NoContent();
