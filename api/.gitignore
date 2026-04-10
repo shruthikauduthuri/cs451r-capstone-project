@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+api/obj/Debug/net9.0/api.AssemblyInfo.cs
+api/obj/Debug/net9.0/api.AssemblyInfoInputs.cache
