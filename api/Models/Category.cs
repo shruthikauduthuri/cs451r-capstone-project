@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Supabase.Postgrest.Attributes;
@@ -8,26 +9,25 @@ using ColumnAttribute = Supabase.Postgrest.Attributes.ColumnAttribute;
 
 namespace api.Models
 {
-    [Supabase.Postgrest.Attributes.Table("Transactions")]
-    public class Transaction : BaseModel
+    [Supabase.Postgrest.Attributes.Table("Categories")]
+    public class Category : BaseModel
     {
         [PrimaryKey("id", false)]
         public long Id { get; set; }
-        
+
         [Column("user_id")]
-        public long User_id { get; set; }
+        public string UserId { get; set; } = string.Empty;
 
-        [Column("description")]
-        public string Description { get; set; } = "none";
+        [Column("name")]
+        public string Name { get; set; } = string.Empty;
 
-        [Column("category")]
-        public string Category { get; set; } = string.Empty;
+        [Column("type")]
+        public string Type { get; set; } = string.Empty;
 
-        [Column("amount")]
-        public double Amount { get; set; }
+        [Column("is_default")]
+        public bool IsDefault { get; set; }
 
         [Column("created_at")]
         public DateTimeOffset Created_at { get; set; }
-
     }
 }

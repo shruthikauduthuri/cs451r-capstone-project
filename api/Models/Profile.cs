@@ -8,7 +8,7 @@ using ColumnAttribute = Supabase.Postgrest.Attributes.ColumnAttribute;
 
 namespace api.Models
 {
-    [Supabase.Postgrest.Attributes.Table("User")]
+    [Supabase.Postgrest.Attributes.Table("Profiles")]
     public class Profile : BaseModel
     {
         [PrimaryKey("id", false)]
