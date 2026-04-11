@@ -2,6 +2,7 @@ import SummaryCards from "../components/SummaryCards";
 import RecentTransactions from "../components/RecentTransactions";
 import CategoryBreakdown from "../components/CategoryBreakdown";
 import SavingsGoals from "../components/SavingsGoals";
+import { Link } from "react-router-dom";
 import "./Dashboard.css";
 
 const summaryData = [

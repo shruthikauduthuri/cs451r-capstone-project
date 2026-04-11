@@ -39,13 +39,25 @@
   cursor: pointer;
 }
 
+.dashboard-ai-link {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  cursor: pointer;
+  text-decoration: none;
+}
+
 .dashboard-range-button {
   background: #1d4ed8;
   border-color: #1d4ed8;
 }
 
 .dashboard-range-button:hover,
-.dashboard-secondary-button:hover {
+.dashboard-secondary-button:hover,
+.dashboard-ai-link:hover {
   opacity: 0.9;
 }
 

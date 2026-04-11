@@ -1,12 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layout/MainLayout";
-
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
 import Savings from "./pages/Savings";
 import Household from "./pages/Household";
 import Login from "./pages/Login";
+import AskAI from "./pages/AskAI";
 
 export default function App() {
   return (
@@ -21,6 +21,7 @@ export default function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/savings" element={<Savings />} />
           <Route path="/household" element={<Household />} />
+          <Route path="/ask-ai" element={<AskAI />} />
         </Route>
       </Routes>
     </BrowserRouter>

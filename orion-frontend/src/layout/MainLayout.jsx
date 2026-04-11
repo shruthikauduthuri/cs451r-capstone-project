@@ -45,6 +45,9 @@ export default function MainLayout() {
           <NavLink to="/household" style={linkStyle}>
             Household
           </NavLink>
+          <NavLink to="/ask-ai" style={linkStyle}>
+            Ask Orion AI
+          </NavLink>
         </nav>
       </aside>
 
