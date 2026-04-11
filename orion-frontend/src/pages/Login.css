@@ -226,3 +226,23 @@
   filter: brightness(1.05);
   color: #fff;
 }
+
+.login-error {
+  color: #b00020;
+  background: #ffe9ec;
+  border: 1px solid #f3b8c0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+}
+
+.login-success {
+  color: #0f5132;
+  background: #e9f7ef;
+  border: 1px solid #b7e4c7;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+}

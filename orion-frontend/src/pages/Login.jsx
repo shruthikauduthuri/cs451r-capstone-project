@@ -1,16 +1,37 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import "./Login.css";
+import { supabase } from "../supabaseClient";
 
 export default function Login() {
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(() => searchParams.get("email")?.trim() ?? "");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    navigate("/dashboard");
+    setLoading(true);
+    setErrorMsg("");
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    console.log("LOGIN DATA:", data);
+    console.log("LOGIN ERROR:", error);
+
+    setLoading(false);
+
+    if (error) {
+      setErrorMsg(error.message);
+      return;
+    }
+
+    navigate("/dashboard", { replace: true });
   }
 
   return (
@@ -61,8 +82,10 @@ export default function Login() {
               />
             </div>
 
-            <button type="submit" className="login-submit">
-              Login
+            {errorMsg && <p className="login-error">{errorMsg}</p>}
+
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </button>
           </form>
 

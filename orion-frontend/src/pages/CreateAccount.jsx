@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
+import { supabase } from "../supabaseClient";
 
 export default function CreateAccount() {
   const navigate = useNavigate();
@@ -11,20 +12,60 @@ export default function CreateAccount() {
     password: "",
     confirm: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   function onChange(e) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setErrorMsg("");
+    setSuccessMsg("");
+
     if (form.password !== form.confirm) {
-      alert("Passwords do not match. Please try again.");
+      setErrorMsg("Passwords do not match. Please try again.");
       return;
     }
-    const q = encodeURIComponent(form.email.trim());
-    navigate(`/login?email=${q}`, { replace: false });
+
+    setLoading(true);
+
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email.trim(),
+      password: form.password,
+      options: {
+        data: {
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+        },
+        emailRedirectTo: "http://localhost:5173/login",
+      },
+    });
+
+    console.log("SIGNUP DATA:", data);
+    console.log("SIGNUP ERROR:", error);
+
+    setLoading(false);
+
+    if (error) {
+      if (error.message.toLowerCase().includes("rate limit")) {
+        setErrorMsg(
+          "Supabase email sending limit was hit. Wait a while before trying again, or turn off Confirm email in Supabase while testing."
+        );
+      } else {
+        setErrorMsg(error.message);
+      }
+      return;
+    }
+
+    setSuccessMsg("Account created successfully.");
+
+    navigate(`/login?email=${encodeURIComponent(form.email.trim())}`, {
+      replace: false,
+    });
   }
 
   return (
@@ -123,8 +164,11 @@ export default function CreateAccount() {
               />
             </div>
 
-            <button type="submit" className="login-submit">
-              Create account
+            {errorMsg && <p className="login-error">{errorMsg}</p>}
+            {successMsg && <p className="login-success">{successMsg}</p>}
+
+            <button type="submit" className="login-submit" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
             </button>
           </form>
 
