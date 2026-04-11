@@ -1,0 +1,180 @@
+/* Orion — shared layout, cards, and tokens */
+
+:root {
+  --orion-bg-deep: #050a18;
+  --orion-bg-mid: #0e1630;
+  --orion-sidebar: #080c1a;
+  --orion-sidebar-active: rgba(59, 130, 246, 0.18);
+  --orion-text-on-dark: #f8fafc;
+  --orion-text-muted: #94a3b8;
+  --orion-text-dim: #64748b;
+  --orion-card: #ffffff;
+  --orion-card-muted: #f8fafc;
+  --orion-border: #e2e8f0;
+  --orion-blue: #3b82f6;
+  --orion-purple: #a855f7;
+  --orion-gradient: linear-gradient(90deg, #3b82f6, #a855f7);
+  --orion-gradient-btn: linear-gradient(90deg, #6366f1, #a855f7);
+  --orion-shadow-card: 0 4px 24px rgba(0, 0, 0, 0.12);
+  --orion-radius-lg: 14px;
+  --orion-radius-md: 10px;
+}
+
+.orion-app-bg {
+  position: relative;
+  min-height: 100vh;
+  flex: 1;
+  background: linear-gradient(145deg, #050b24 0%, #0a1028 45%, #0e1630 100%);
+  color: var(--orion-text-on-dark);
+}
+
+.orion-app-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.35) 50%, transparent 51%),
+    radial-gradient(1px 1px at 60% 70%, rgba(255, 255, 255, 0.25) 50%, transparent 51%),
+    radial-gradient(1px 1px at 80% 20%, rgba(255, 255, 255, 0.2) 50%, transparent 51%),
+    radial-gradient(1px 1px at 40% 80%, rgba(255, 255, 255, 0.22) 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 60%, rgba(255, 255, 255, 0.18) 50%, transparent 51%);
+  background-size: 100% 100%;
+  opacity: 0.9;
+}
+
+.orion-constellation {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(420px, 45vw);
+  height: 200px;
+  pointer-events: none;
+  opacity: 0.35;
+}
+
+.orion-page-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 28px 40px;
+  box-sizing: border-box;
+}
+
+.orion-page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--orion-text-on-dark);
+}
+
+.orion-page-sub {
+  margin: 6px 0 0;
+  font-size: 0.9375rem;
+  color: var(--orion-text-muted);
+}
+
+.orion-page-tagline {
+  margin: 8px 0 0;
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: var(--orion-text-dim);
+}
+
+.orion-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.orion-card {
+  background: var(--orion-card);
+  border-radius: var(--orion-radius-lg);
+  box-shadow: var(--orion-shadow-card);
+  padding: 24px;
+  color: #111827;
+}
+
+.orion-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.orion-card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.orion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--orion-blue);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.orion-badge--dark {
+  background: rgba(30, 58, 138, 0.35);
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #93c5fd;
+}
+
+.btn-gradient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--orion-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: var(--orion-gradient);
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.btn-gradient:hover {
+  filter: brightness(1.06);
+}
+
+.btn-gradient:active {
+  transform: translateY(1px);
+}
+
+.btn-outline-light {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--orion-radius-md);
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-outline-light:hover {
+  border-color: var(--orion-blue);
+  color: var(--orion-blue);
+}

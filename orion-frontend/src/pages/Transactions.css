@@ -1,0 +1,304 @@
+.tx-page {
+  max-width: 900px;
+}
+
+.tx-header {
+  align-items: center;
+}
+
+.tx-add-btn {
+  white-space: nowrap;
+}
+
+.tx-main-card {
+  padding-bottom: 28px;
+  /* Root app uses color-scheme: dark; keep native controls readable on white cards */
+  color-scheme: light;
+}
+
+.tx-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tx-inline-badge {
+  margin-top: 8px;
+}
+
+.tx-filter-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tx-filter-label {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.tx-month-select {
+  min-width: 180px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: #111827;
+  background: #fff;
+}
+
+.tx-totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 520px) {
+  .tx-totals {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tx-total {
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.tx-total--in {
+  background: #ecfdf5;
+}
+
+.tx-total--out {
+  background: #fef2f2;
+}
+
+.tx-total-label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.tx-total--in .tx-total-label {
+  color: #047857;
+}
+
+.tx-total--out .tx-total-label {
+  color: #b91c1c;
+}
+
+.tx-total-value {
+  margin: 6px 0 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-total--in .tx-total-value {
+  color: #15803d;
+}
+
+.tx-total--out .tx-total-value {
+  color: #dc2626;
+}
+
+.tx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tx-row:last-child {
+  border-bottom: none;
+}
+
+.tx-row-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tx-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+  color: #fff;
+}
+
+.tx-icon--in {
+  background: #16a34a;
+}
+
+.tx-icon--out {
+  background: #dc2626;
+}
+
+.tx-row-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.tx-row-meta {
+  margin: 4px 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.tx-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tx-amt {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tx-amt--in {
+  color: #16a34a;
+}
+
+.tx-amt--out {
+  color: #dc2626;
+}
+
+.tx-remove {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.tx-remove:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.tx-empty {
+  padding: 24px 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9375rem;
+}
+
+.tx-add-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.tx-add-title {
+  margin: 0 0 16px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.tx-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 600px) {
+  .tx-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tx-f {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  min-width: 0;
+}
+
+.tx-f--wide {
+  grid-column: 1 / -1;
+}
+
+/* Add-transaction: force light native controls (root uses color-scheme: dark) */
+.tx-add-section {
+  color-scheme: light;
+}
+
+.tx-add-section .tx-f input,
+.tx-add-section .tx-f select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid #5b21b6;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #111827;
+  background-color: #ffffff;
+  box-shadow: none;
+}
+
+.tx-add-section .tx-f input::placeholder {
+  color: #6b7280;
+}
+
+.tx-add-section .tx-f select {
+  appearance: auto;
+  cursor: pointer;
+}
+
+.tx-add-section .tx-f select option {
+  color: #111827;
+  background: #ffffff;
+}
+
+.tx-add-section .tx-f input:focus,
+.tx-add-section .tx-f select:focus {
+  outline: none;
+  border-color: #4c1d95;
+  box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.2);
+}
+
+.tx-submit {
+  margin-top: 16px;
+}

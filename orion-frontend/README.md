@@ -1,16 +1,65 @@
-# React + Vite
+# Orion — Household Finance Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Orion is a full-stack web application that empowers households to manage their finances together and build financial literacy as a team.
 
-Currently, two official plugins are available:
+## About
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Orion brings everyone in a household onto the same page financially. Track shared expenses, set savings goals, manage budgets by category, and view spending trends, all in one place. Designed with clarity and collaboration in mind, Orion makes financial literacy accessible for everyone in the home.
 
-## React Compiler
+## Frontend Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Technology | Purpose |
+|---|---|
+| React | UI component library |
+| Vite | Build tool and dev server |
+| JSX | Component templating |
+| CSS Modules | Page-scoped styling |
+| Recharts | Data visualization (charts) |
+| React Router | Client-side routing |
 
-## Expanding the ESLint configuration
+## UI Design
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The Orion frontend is designed in **Figma** and implemented in React. The UI includes:
+
+- **Dashboard** — Overview of household finances with charts and summary cards
+- **Transactions** — Log and browse income and expense entries
+- **Categories** — Manage and visualize spending by category
+- **Savings** — Set and track household savings goals
+- **Household** — Manage household members and shared contributions
+- **Settings** — User preferences and account configuration
+- **Login** — Secure authentication flow
+
+The design system uses a consistent Orion theme (`orion-theme.css`) with shared color variables, typography, and component styles across all pages.
+
+## Getting Started
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm
+
+### Installation
+
+Clone the repository:
+```bash
+git clone https://github.com/shruthikauduthuri/cs451r-capstone-project.git
+cd cs451r-capstone-project/orion-frontend
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+### Running Locally
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Build for Production
+
+```bash
+npm run build
+```
