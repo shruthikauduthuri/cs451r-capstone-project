@@ -1,8 +1,6 @@
 using api.Contracts;
 using api.Models;
 using Supabase;
-using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
