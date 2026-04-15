@@ -417,6 +417,12 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+api\appsettings.json
+api/obj/api.csproj.nuget.dgspec.json
+api/obj/api.csproj.nuget.g.props
+api/obj/project.assets.json
+api/obj/project.nuget.cache
+api/obj/Debug/net9.0/api.assets.cache
 api/obj/Debug/net9.0/api.AssemblyInfo.cs
 api/obj/Debug/net9.0/api.AssemblyInfoInputs.cache
 api/obj/Debug/net10.0/api.AssemblyInfo.cs
