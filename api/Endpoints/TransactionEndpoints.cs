@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Contracts
+namespace api.Endpoints
 {
-    public class CreateSavingsGoalRequest
+    public class TransactionEndpoints
     {
         
     }

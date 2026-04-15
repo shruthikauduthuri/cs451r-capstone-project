@@ -10,7 +10,7 @@ using ColumnAttribute = Supabase.Postgrest.Attributes.ColumnAttribute;
 namespace api.Models
 {
     [Supabase.Postgrest.Attributes.Table("Savings_Goals")]
-    public class SavingsGoal : BaseModel
+    public class Goal : BaseModel
     {
         [PrimaryKey("id", false)]
         public long Id { get; set; }

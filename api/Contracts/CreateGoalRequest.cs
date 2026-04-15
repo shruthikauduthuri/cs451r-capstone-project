@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace api.Contracts
 {
-    public class CreateSavingsGoalResponse
+    public class CreateGoalRequest
     {
         
     }

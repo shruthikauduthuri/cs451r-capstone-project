@@ -1,6 +1,13 @@
+using api;
 using api.Contracts;
 using api.Models;
 using Supabase;
+using AuthEndpoints = api.Endpoints.AuthEndpoints;
+using UserEndpoints = api.Endpoints.UserEndpoints;
+using HouseholdEndpoints = api.Endpoints.HouseholdEndpoints;
+using BudgetEndpoints = api.Endpoints.BudgetEndpoints;
+using TransactionEndpoints = api.Endpoints.TransactionEndpoints;
+using GoalEndpoints = api.Endpoints.GoalEndpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
@@ -28,48 +35,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapPost("/users", async (Client supabase, CreateUserRequest request) =>
-{
-    var response = await supabase.From<User>().Insert(new User
-    {
-        Name = request.Name,
-        Email = request.Email
-    });
-
-    var createdUser = response.Models.FirstOrDefault();
-    if (createdUser == null)
-    {
-        return Results.Problem("Failed to create user.");
-    }
-
-    return Results.Ok(createdUser.Id);
-});
-
-app.MapGet("/users/{id}", async (Client supabase, long id) =>
-{
-    var response = await supabase.From<User>().Where(u => u.Id == id).Get();
-    var user = response.Models.FirstOrDefault();
-
-    if (user is null)
-    {
-        return Results.NotFound();
-    }
-
-    var userResponse = new CreateUserResponse
-    {
-        Id = user.Id,
-        Name = user.Name,
-        Email = user.Email,
-        Created_at = user.Created_at
-    };
-    return Results.Ok(userResponse);
-});
-
-app.MapDelete("/users/{id}", async (Client supabase, long id) =>
-{
-    await supabase.From<User>().Where(u => u.Id == id).Delete();
-    return Results.NoContent();
-});
+app.MapAuthEndpoints();
+app.MapUserEndpoints();
+app.MapHouseholdEndpoints();
+app.MapBudgetEndpoints();
+app.MapTransactionEndpoints();
+app.MapGoalEndpoints();
+app.MapSharedExpenseEndpoints();
 
 app.UseHttpsRedirection();
 
