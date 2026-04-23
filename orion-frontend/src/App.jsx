@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import CreateAccount from "./pages/CreateAccount";
 import AskAI from "./pages/AskAI";
+import ResetPassword from "./pages/ResetPassword";
 
 function ProtectedRoute() {
   const { session, loading } = useAuth();
@@ -49,9 +50,9 @@ function AppRoutes() {
         path="/login"
         element={session ? <Navigate to="/dashboard" replace /> : <Login />}
       />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/create-account" element={<CreateAccount />} />
-
+<Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password" element={<ResetPassword />} />
+<Route path="/create-account" element={<CreateAccount />} />
       {/* Protected app shell */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
