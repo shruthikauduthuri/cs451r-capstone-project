@@ -425,3 +425,12 @@ api\csproj
 api\appsettings.Development.json
 api\obj\Debug\net9.0\api.AssemblyInfo.cs
 api\obj\Debug\net9.0\api.AssemblyInfoInputs.cache
+
+api/appsettings.json
+api/obj
+api/bin
+api/Properties/launchSettings.json
+api/csproj
+api/appsettings.Development.json
+api/obj/Debug\net9.0\api.AssemblyInfo.cs
+api/obj/Debug\net9.0\api.AssemblyInfoInputs.cache
