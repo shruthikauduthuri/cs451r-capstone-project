@@ -124,3 +124,19 @@
   width: 100%;
   justify-content: center;
 }
+.hh-role-select {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #334155;
+  background: #0f172a;
+  color: #f8fafc;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.hh-role-select:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+}

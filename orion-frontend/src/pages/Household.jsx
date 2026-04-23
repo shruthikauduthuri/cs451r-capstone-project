@@ -10,6 +10,8 @@ const ROLE_COLORS = {
   child: "#f59e0b",
 };
 
+const ROLE_OPTIONS = ["admin", "partner", "roommate", "child"];
+
 export default function Household() {
   const { user, profile, hasRole, refreshProfile } = useAuth();
   const [members, setMembers] = useState([]);
@@ -17,16 +19,13 @@ export default function Household() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // For creating a household
   const [householdName, setHouseholdName] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // For joining a household
   const [joinInput, setJoinInput] = useState("");
   const [joining, setJoining] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Fetch household and members
   useEffect(() => {
     if (!profile) {
       setLoading(false);
@@ -41,7 +40,6 @@ export default function Household() {
         return;
       }
 
-      // Fetch household info
       const { data: hh, error: hhError } = await supabase
         .from("households")
         .select("*")
@@ -55,7 +53,6 @@ export default function Household() {
       }
       setHousehold(hh);
 
-      // Fetch all members in this household
       const { data: memberData, error: memError } = await supabase
         .from("profiles")
         .select("id, username, role, created_at")
@@ -73,13 +70,11 @@ export default function Household() {
     loadHousehold();
   }, [profile]);
 
-  // Create a new household
   async function handleCreate() {
     if (!householdName.trim()) return;
     setCreating(true);
     setErrorMsg("");
 
-    // Insert household
     const { data: newHH, error: createError } = await supabase
       .from("households")
       .insert({ name: householdName.trim(), created_by: user.id })
@@ -92,7 +87,6 @@ export default function Household() {
       return;
     }
 
-    // Link current user to the household
     const { error: updateError } = await supabase
       .from("profiles")
       .update({ household_id: newHH.id, role: "admin" })
@@ -104,18 +98,15 @@ export default function Household() {
       return;
     }
 
-    // Reload the page to reflect changes
-    window.location.reload();
+    window.location.href = "/household";
   }
 
-  // Join an existing household by code
   async function handleJoin() {
     if (!joinInput.trim()) return;
     setJoining(true);
     setErrorMsg("");
 
     try {
-      // Step 1: Find household
       const { data: foundHH, error: findError } = await supabase
         .from("households")
         .select("id")
@@ -134,10 +125,9 @@ export default function Household() {
         return;
       }
 
-      // Step 2: Update profile
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ household_id: foundHH.id })
+        .update({ household_id: foundHH.id, role: "partner" })
         .eq("id", user.id);
 
       if (updateError) {
@@ -146,12 +136,27 @@ export default function Household() {
         return;
       }
 
-      // Step 3: Reload
       window.location.href = "/household";
     } catch (err) {
       setErrorMsg("Unexpected error: " + err.message);
       setJoining(false);
     }
+  }
+
+  async function handleRoleChange(memberId, newRole) {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role: newRole })
+      .eq("id", memberId);
+
+    if (error) {
+      alert("Error updating role: " + error.message);
+      return;
+    }
+
+    setMembers((prev) =>
+      prev.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
+    );
   }
 
   function copyCode() {
@@ -179,7 +184,6 @@ export default function Household() {
     );
   }
 
-  // No household yet — show create or join options
   if (!profile?.household_id) {
     return (
       <div className="hh-page">
@@ -209,12 +213,7 @@ export default function Household() {
                 fontSize: "0.875rem",
               }}
             />
-            <button
-              type="button"
-              className="btn-gradient"
-              onClick={handleCreate}
-              disabled={creating}
-            >
+            <button type="button" className="btn-gradient" onClick={handleCreate} disabled={creating}>
               {creating ? "Creating..." : "Create"}
             </button>
           </div>
@@ -241,12 +240,7 @@ export default function Household() {
                 letterSpacing: "0.05em",
               }}
             />
-            <button
-              type="button"
-              className="btn-gradient"
-              onClick={handleJoin}
-              disabled={joining}
-            >
+            <button type="button" className="btn-gradient" onClick={handleJoin} disabled={joining}>
               {joining ? "Joining..." : "Join"}
             </button>
           </div>
@@ -259,7 +253,6 @@ export default function Household() {
     );
   }
 
-  // Has a household — show members and join code
   return (
     <div className="hh-page">
       <header className="orion-page-header">
@@ -282,41 +275,51 @@ export default function Household() {
 
       <article className="orion-card hh-card">
         <div className="hh-card-head">
-          <h2 className="orion-card-title">
-            Household Members ({members.length})
-          </h2>
+          <h2 className="orion-card-title">Household Members ({members.length})</h2>
         </div>
         <ul className="hh-members">
-          {members.map((m) => (
-            <li key={m.id} className="hh-member">
-              <div
-                className="hh-avatar"
-                style={{ background: ROLE_COLORS[m.role] || "#64748b" }}
-              >
-                {getInitials(m.username)}
-              </div>
-              <div className="hh-member-info">
-                <p className="hh-member-name">{m.username || "Unknown"}</p>
-                <p className="hh-member-email">
-                  Joined {new Date(m.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              <span className={m.role === "admin" ? "hh-role hh-role--admin" : "hh-role"}>
-                {m.role === "admin" && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6-4.7-6 4.7 2.3-7-6-4.6h7.6z" />
-                  </svg>
+          {members.map((m) => {
+            const isCurrentUser = m.id === user.id;
+            const isAdmin = hasRole("admin");
+
+            return (
+              <li key={m.id} className="hh-member">
+                <div className="hh-avatar" style={{ background: ROLE_COLORS[m.role] || "#64748b" }}>
+                  {getInitials(m.username)}
+                </div>
+                <div className="hh-member-info">
+                  <p className="hh-member-name">
+                    {m.username || "Unknown"}
+                    {isCurrentUser && <span style={{ color: "#94a3b8", fontWeight: 400 }}> (you)</span>}
+                  </p>
+                  <p className="hh-member-email">Joined {new Date(m.created_at).toLocaleDateString()}</p>
+                </div>
+
+                {isAdmin && !isCurrentUser ? (
+                  <select
+                    className="hh-role-select"
+                    value={m.role}
+                    onChange={(e) => handleRoleChange(m.id, e.target.value)}
+                  >
+                    {ROLE_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r.charAt(0).toUpperCase() + r.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className={m.role === "admin" ? "hh-role hh-role--admin" : "hh-role"}>
+                    {m.role === "admin" && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l2.4 7.4h7.6l-6 4.6 2.3 7-6-4.7-6 4.7 2.3-7-6-4.6h7.6z" />
+                      </svg>
+                    )}
+                    {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
+                  </span>
                 )}
-                {m.role !== "admin" && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                )}
-                {m.role.charAt(0).toUpperCase() + m.role.slice(1)}
-              </span>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </article>
 

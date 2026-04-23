@@ -1,7 +1,26 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useOrionStore } from "../data/useOrionStore";
 import { downloadTextReport } from "../utils/downloadReport";
 import "./Savings.css";
+
+const VISIBILITY_OPTIONS = [
+  { value: "household", label: "Everyone" },
+  { value: "admin-only", label: "Admin only" },
+  { value: "no-children", label: "Hide from children" },
+  { value: "no-roommates", label: "Hide from roommates" },
+  { value: "private", label: "Only me" },
+];
+
+function canSeeItem(item, userRole) {
+  const vis = item.visibility || "household";
+  if (vis === "household") return true;
+  if (vis === "private") return false;
+  if (vis === "admin-only") return userRole === "admin";
+  if (vis === "no-children") return userRole !== "child";
+  if (vis === "no-roommates") return userRole !== "roommate";
+  return true;
+}
 
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", {
@@ -11,17 +30,24 @@ function formatMoney(n) {
 }
 
 export default function Savings() {
-  const { categories, goals, addGoal, removeGoal, contributeToGoal } = useOrionStore();
+  const { user, profile, hasRole } = useAuth();
+  const { categories, goals, addGoal, removeGoal, updateGoal, contributeToGoal } = useOrionStore();
 
   const [form, setForm] = useState({
     name: "",
     targetAmount: "",
-    linkedCategory: "Vacation",
+    linkedCategory: categories[0] || "Other",
+    visibility: "household",
   });
 
+  const visibleGoals = useMemo(
+    () => goals.filter((g) => hasRole("admin") || canSeeItem(g, profile?.role)),
+    [goals, profile]
+  );
+
   const totalSaved = useMemo(
-    () => goals.reduce((sum, g) => sum + Number(g.currentAmount || 0), 0),
-    [goals]
+    () => visibleGoals.reduce((sum, g) => sum + Number(g.currentAmount || 0), 0),
+    [visibleGoals]
   );
 
   function onChange(e) {
@@ -43,17 +69,19 @@ export default function Savings() {
       linkedCategory: form.linkedCategory,
       description: "",
       contributors: [],
+      visibility: form.visibility,
+      createdBy: user?.id,
     });
 
-    setForm({ name: "", targetAmount: "", linkedCategory: form.linkedCategory });
+    setForm({ name: "", targetAmount: "", linkedCategory: categories[0] || "Other", visibility: "household" });
   }
 
   function handleDownloadReport() {
-    downloadTextReport(`orion-savings-goals.txt`, [
+    downloadTextReport("orion-savings-goals.txt", [
       "Orion — Savings goals",
       `Total saved across goals: ${formatMoney(totalSaved)}`,
       "",
-      ...goals.map((g) => {
+      ...visibleGoals.map((g) => {
         const p = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
         return `${g.name}: ${formatMoney(g.currentAmount)} / ${formatMoney(g.targetAmount)} (${p}%)`;
       }),
@@ -66,13 +94,6 @@ export default function Savings() {
         <div>
           <h1 className="orion-page-title">Savings Goals</h1>
           <p className="orion-page-sub">Track shared household savings goals</p>
-          <span className="orion-badge orion-badge--dark" style={{ marginTop: 10 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M2 12h20" />
-            </svg>
-            Goals data from API
-          </span>
         </div>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button type="button" className="btn-outline-light" onClick={handleDownloadReport}>
@@ -88,10 +109,17 @@ export default function Savings() {
       </header>
 
       <div className="sv-stack">
-        {goals.map((g) => (
-          <GoalCard key={g.id} goal={g} onRemove={() => removeGoal(g.id)} onContribute={(amt) => contributeToGoal(g.id, amt)} />
+        {visibleGoals.map((g) => (
+          <GoalCard
+            key={g.id}
+            goal={g}
+            isAdmin={hasRole("admin")}
+            onRemove={() => removeGoal(g.id)}
+            onContribute={(amt) => contributeToGoal(g.id, amt)}
+            onVisibilityChange={(vis) => updateGoal(g.id, { visibility: vis })}
+          />
         ))}
-        {goals.length === 0 && <p className="sv-empty">No goals yet — create one below.</p>}
+        {visibleGoals.length === 0 && <p className="sv-empty">No goals yet — create one below.</p>}
       </div>
 
       <section id="sv-add" className="orion-card sv-form-card">
@@ -109,9 +137,15 @@ export default function Savings() {
             Linked category
             <select name="linkedCategory" value={form.linkedCategory} onChange={onChange}>
               {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </label>
+          <label className="sv-f">
+            Who can see this?
+            <select name="visibility" value={form.visibility} onChange={onChange}>
+              {VISIBILITY_OPTIONS.map((v) => (
+                <option key={v.value} value={v.value}>{v.label}</option>
               ))}
             </select>
           </label>
@@ -124,11 +158,13 @@ export default function Savings() {
   );
 }
 
-function GoalCard({ goal, onRemove, onContribute }) {
+function GoalCard({ goal, isAdmin, onRemove, onContribute, onVisibilityChange }) {
   const [amount, setAmount] = useState("");
   const progress = Math.min(100, Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100));
   const remaining = Math.max(0, Number(goal.targetAmount) - Number(goal.currentAmount));
-  const contributors = goal.contributors?.length ? goal.contributors : ["Sarah", "Alex", "Jake"];
+  const contributors = goal.contributors?.length ? goal.contributors : [];
+
+  const visLabel = VISIBILITY_OPTIONS.find((v) => v.value === (goal.visibility || "household"))?.label || "Everyone";
 
   function submitContribution(e) {
     e.preventDefault();
@@ -170,14 +206,50 @@ function GoalCard({ goal, onRemove, onContribute }) {
       </div>
       <p className="sv-goal-remain">{formatMoney(remaining)} remaining to reach goal</p>
 
-      <p className="sv-contrib-label">Contributors:</p>
-      <p className="sv-contrib-names">
-        {contributors.map((n) => (
-          <span key={n} className="sv-contrib-link">
-            {n}
-          </span>
-        ))}
-      </p>
+      {contributors.length > 0 && (
+        <>
+          <p className="sv-contrib-label">Contributors:</p>
+          <p className="sv-contrib-names">
+            {contributors.map((n) => (
+              <span key={n} className="sv-contrib-link">{n}</span>
+            ))}
+          </p>
+        </>
+      )}
+
+      {isAdmin && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginTop: 12,
+          paddingTop: 12,
+          borderTop: "1px solid #e2e8f0",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, color: "#94a3b8" }}>
+            <rect x="3" y="11" width="18" height="11" rx="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+          <span style={{ fontSize: "0.8125rem", color: "#94a3b8" }}>Visibility:</span>
+          <select
+            value={goal.visibility || "household"}
+            onChange={(e) => onVisibilityChange(e.target.value)}
+            style={{
+              padding: "4px 8px",
+              borderRadius: 6,
+              border: "1px solid #334155",
+              background: "#0f172a",
+              color: "#f8fafc",
+              fontSize: "0.8125rem",
+              cursor: "pointer",
+            }}
+          >
+            {VISIBILITY_OPTIONS.map((v) => (
+              <option key={v.value} value={v.value}>{v.label}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <form className="sv-contrib-form" onSubmit={submitContribution}>
         <input
