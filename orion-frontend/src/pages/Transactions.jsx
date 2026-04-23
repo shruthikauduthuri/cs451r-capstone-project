@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
 import { downloadTextReport } from "../utils/downloadReport";
 import "./Transactions.css";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 
 const TYPE_OPTIONS = ["expense", "income"];
-const MEMBERS = ["Alex", "Sarah", "Jake"];
 
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", {
@@ -32,14 +33,36 @@ const MONTH_OPTIONS = [
 export default function Transactions() {
   const { categories, transactions, addTransaction, removeTransaction } = useOrionStore();
 
+  const { user, profile } = useAuth();
+  const [members, setMembers] = useState([]);
+
+  useEffect(() => {
+    async function loadMembers() {
+      if (!profile?.household_id) {
+        setMembers([user?.user_metadata?.first_name || user?.email || "Me"]);
+        return;
+      }
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("household_id", profile.household_id);
+      if (data?.length) {
+        setMembers(data.map((m) => m.username || "Unknown"));
+      } else {
+        setMembers([user?.user_metadata?.first_name || "Me"]);
+      }
+    }
+    loadMembers();
+  }, [profile]);
+
   const [selectedMonth, setSelectedMonth] = useState("2026-04");
   const [form, setForm] = useState({
     type: "expense",
     amount: "",
     category: "Groceries",
-    date: "2026-04-03",
+    date: new Date().toISOString().slice(0, 10),
     description: "",
-    member: "Sarah",
+    member: "",
   });
 
   const filtered = useMemo(

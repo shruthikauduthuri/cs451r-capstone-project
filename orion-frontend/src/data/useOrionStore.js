@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_CATEGORIES, DEFAULT_TRANSACTIONS, DEFAULT_GOALS } from "./store";
 
-// localStorage keys
 const K_CATEGORIES = "orion_categories_v1";
 const K_TRANSACTIONS = "orion_transactions_v1";
 const K_GOALS = "orion_goals_v1";
@@ -21,17 +20,11 @@ function write(key, value) {
 
 export function useOrionStore() {
   const [categories, setCategories] = useState(() => read(K_CATEGORIES, DEFAULT_CATEGORIES));
-  const [transactions, setTransactions] = useState(() =>
-    read(K_TRANSACTIONS, DEFAULT_TRANSACTIONS)
-  );
-
-  // goals must be inside the hook
+  const [transactions, setTransactions] = useState(() => read(K_TRANSACTIONS, DEFAULT_TRANSACTIONS));
   const [goals, setGoals] = useState(() => read(K_GOALS, DEFAULT_GOALS));
 
   useEffect(() => write(K_CATEGORIES, categories), [categories]);
   useEffect(() => write(K_TRANSACTIONS, transactions), [transactions]);
-
-  // persist goals too
   useEffect(() => write(K_GOALS, goals), [goals]);
 
   const categoryOptions = useMemo(() => categories.slice().sort(), [categories]);
@@ -39,10 +32,8 @@ export function useOrionStore() {
   function addCategory(name) {
     const trimmed = name.trim();
     if (!trimmed) return { ok: false, message: "Category cannot be empty." };
-
     const exists = categories.some((c) => c.toLowerCase() === trimmed.toLowerCase());
     if (exists) return { ok: false, message: "Category already exists." };
-
     setCategories((prev) => [...prev, trimmed]);
     return { ok: true };
   }
@@ -62,6 +53,12 @@ export function useOrionStore() {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   }
 
+  function updateTransaction(id, updates) {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  }
+
   function addGoal(goal) {
     setGoals((prev) => [goal, ...prev]);
   }
@@ -70,10 +67,15 @@ export function useOrionStore() {
     setGoals((prev) => prev.filter((g) => g.id !== id));
   }
 
+  function updateGoal(id, updates) {
+    setGoals((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...updates } : g))
+    );
+  }
+
   function contributeToGoal(id, amount) {
     const amt = Number(amount);
     if (!amt || amt <= 0) return;
-
     setGoals((prev) =>
       prev.map((g) =>
         g.id === id ? { ...g, currentAmount: g.currentAmount + amt } : g
@@ -89,8 +91,10 @@ export function useOrionStore() {
     removeCategory,
     addTransaction,
     removeTransaction,
+    updateTransaction,
     addGoal,
     removeGoal,
+    updateGoal,
     contributeToGoal,
   };
 }
