@@ -9,6 +9,71 @@
   gap: 20px;
 }
 
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard-title {
+  margin: 0;
+  font-size: 24px;
+}
+
+.dashboard-subtitle {
+  margin: 4px 0 0;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dashboard-range-button,
+.dashboard-secondary-button {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  cursor: pointer;
+}
+
+.dashboard-ai-link {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  color: #e5e7eb;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.dashboard-range-button {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.dashboard-range-button:hover,
+.dashboard-secondary-button:hover,
+.dashboard-ai-link:hover {
+  opacity: 0.9;
+}
+
+.dashboard-section {
+  background: transparent;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 20px;
+}
+
 .dash-row--2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }

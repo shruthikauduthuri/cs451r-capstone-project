@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api;
-using api.Contracts;
+using api.Contracts.Auth;
 using api.Models;
 using Supabase;
 
@@ -57,7 +57,7 @@ namespace api.Endpoints
             {
                 var session = supabase.Auth.CurrentSession;
 
-                if (session == null)
+                if (session == null || session.User == null)
                     return Results.Unauthorized();
 
                 return Results.Ok(new

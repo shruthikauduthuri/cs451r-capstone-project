@@ -56,6 +56,26 @@ function IconSettings() {
   );
 }
 
+function IconSparkles() {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 2l1.7 4.6L18 8.3l-4.3 1.7L12 14l-1.7-4.3L6 8.3l4.3-1.7L12 2z" />
+      <path d="M19 13l.9 2.4L22 16l-2.1.6L19 19l-.9-2.4L16 16l2.1-.6L19 13z" />
+      <path d="M5 14l1.2 3.1L9 18.3l-2.8 1.1L5 22l-1.2-2.6L1 18.3l2.8-1.2L5 14z" />
+    </svg>
+  );
+}
+
 const navItems = [
   { to: "/dashboard", label: "Dashboard", Icon: IconHome },
   { to: "/transactions", label: "Transactions", Icon: IconCard },
@@ -63,6 +83,7 @@ const navItems = [
   { to: "/savings", label: "Savings Goals", Icon: IconTarget },
   { to: "/household", label: "Household", Icon: IconUsers },
   { to: "/settings", label: "Settings", Icon: IconSettings },
+  { to: "/ask-ai", label: "Ask Orion AI", Icon: IconSparkles },
 ];
 
 function Constellation() {

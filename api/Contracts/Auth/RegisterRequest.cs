@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Contracts
+namespace api.Contracts.Auth
 {
-    public class CreateUserRequest
+    public class RegisterRequest
     {
-        public string Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

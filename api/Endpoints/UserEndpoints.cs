@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api;
-using api.Contracts;
+using api.Contracts.User;
 using api.Models;
 using Supabase;
 

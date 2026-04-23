@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 using Supabase.Postgrest.Attributes;
@@ -8,11 +9,12 @@ using ColumnAttribute = Supabase.Postgrest.Attributes.ColumnAttribute;
 
 namespace api.Models
 {
-    [Supabase.Postgrest.Attributes.Table("Transactions")]
-    public class Transaction : BaseModel
+    [Supabase.Postgrest.Attributes.Table("SharedExpenses")]
+    public class SharedExpense : BaseModel
     {
-        public int Id { get; set; }
-        public string Category { get; set; } = string.Empty;
-        
+        [PrimaryKey("id", false)]
+        public long Id { get; set; }
+
+        // Add other properties as needed
     }
 }

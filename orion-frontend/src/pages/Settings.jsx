@@ -1,9 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../supabaseClient";
 import "./Settings.css";
 
 export default function Settings() {
+  const { user } = useAuth();
   const [emailNotif, setEmailNotif] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  // Load user metadata on mount
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.user_metadata?.first_name || "");
+      setLastName(user.user_metadata?.last_name || "");
+    }
+  }, [user]);
+
+  async function handleSaveProfile() {
+    setSaving(true);
+    setSaveMsg("");
+
+    const { error } = await supabase.auth.updateUser({
+      data: { first_name: firstName, last_name: lastName },
+    });
+
+    if (error) {
+      setSaveMsg("Error: " + error.message);
+    } else {
+      // Also update the profiles table username
+      await supabase
+        .from("profiles")
+        .update({ username: firstName + " " + lastName })
+        .eq("id", user.id);
+
+      setSaveMsg("Profile updated!");
+    }
+
+    setSaving(false);
+    setTimeout(() => setSaveMsg(""), 3000);
+  }
 
   return (
     <div className="set-page">
@@ -30,20 +70,44 @@ export default function Settings() {
         <div className="set-fields">
           <label className="set-f">
             First Name
-            <span className="set-val">Sarah</span>
+            <input
+              type="text"
+              className="set-input"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
           </label>
           <label className="set-f">
             Last Name
-            <span className="set-val">Johnson</span>
+            <input
+              type="text"
+              className="set-input"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </label>
           <label className="set-f set-f--full">
             Email
-            <span className="set-val">sarah@example.com</span>
+            <span className="set-val">{user?.email || ""}</span>
           </label>
         </div>
-        <button type="button" className="btn-gradient set-btn">
-          Save Changes
+        <button
+          type="button"
+          className="btn-gradient set-btn"
+          onClick={handleSaveProfile}
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save Changes"}
         </button>
+        {saveMsg && (
+          <p style={{
+            marginTop: 8,
+            fontSize: "0.875rem",
+            color: saveMsg.startsWith("Error") ? "#ef4444" : "#22c55e"
+          }}>
+            {saveMsg}
+          </p>
+        )}
       </article>
 
       <article className="orion-card set-card">
