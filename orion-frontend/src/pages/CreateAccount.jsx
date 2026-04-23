@@ -61,7 +61,7 @@ export default function CreateAccount() {
       return;
     }
 
-    setSuccessMsg("Account created successfully.");
+    setSuccessMsg("Account created successfully! Please check your email for a verification link.");
 
     navigate(`/login?email=${encodeURIComponent(form.email.trim())}`, {
       replace: false,
@@ -70,7 +70,12 @@ export default function CreateAccount() {
 
   return (
     <div className="login-page">
-      <p className="login-slogan">Orion: Where your budget finds its direction.</p>
+      <p className="login-slogan">
+        Orion: Where your budget finds its direction.
+        <span className="login-slogan-rocket" aria-hidden="true">
+          🚀
+        </span>
+      </p>
 
       <div className="login-card-wrap login-card-wrap--wide">
         <div className="login-card">

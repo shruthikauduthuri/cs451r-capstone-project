@@ -5,6 +5,10 @@
 }
 
 .dash-row {
+  display: grid;
+  gap: 20px;
+}
+
 .dashboard-header {
   display: flex;
   align-items: center;

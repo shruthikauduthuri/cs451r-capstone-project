@@ -1,3 +1,4 @@
+import { useAuth } from "../context/AuthContext";
 import { SpendingByCategoryPie, BudgetStatusDoughnut, SpendingTrendArea } from "../components/DashboardCharts";
 import { downloadTextReport } from "../utils/downloadReport";
 import { Link } from "react-router-dom";
@@ -10,6 +11,8 @@ const recentTransactions = [
 ];
 
 export default function Dashboard() {
+  const { user, profile } = useAuth();
+
   function handleDownloadReport() {
     downloadTextReport(`orion-dashboard-${new Date().toISOString().slice(0, 10)}.txt`, [
       "Orion — Dashboard report",
@@ -31,6 +34,7 @@ export default function Dashboard() {
 
   return (
     <div className="dash-page">
+
       <header className="orion-page-header">
         <div>
           <h1 className="orion-page-title">Dashboard</h1>

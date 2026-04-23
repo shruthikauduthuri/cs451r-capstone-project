@@ -33,6 +33,13 @@
   max-width: 420px;
 }
 
+.login-slogan-rocket {
+  margin-left: 6px;
+  font-size: 1rem;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
 .login-card-wrap {
   position: relative;
   z-index: 1;

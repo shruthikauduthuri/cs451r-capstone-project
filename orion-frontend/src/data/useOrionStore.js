@@ -25,13 +25,13 @@ export function useOrionStore() {
     read(K_TRANSACTIONS, DEFAULT_TRANSACTIONS)
   );
 
-  // ✅ goals must be INSIDE the hook
+  // goals must be inside the hook
   const [goals, setGoals] = useState(() => read(K_GOALS, DEFAULT_GOALS));
 
   useEffect(() => write(K_CATEGORIES, categories), [categories]);
   useEffect(() => write(K_TRANSACTIONS, transactions), [transactions]);
 
-  // ✅ persist goals too
+  // persist goals too
   useEffect(() => write(K_GOALS, goals), [goals]);
 
   const categoryOptions = useMemo(() => categories.slice().sort(), [categories]);
