@@ -17,6 +17,7 @@ namespace api.Endpoints
             {
                 var user = supabase.Auth.CurrentUser;
                 if (user == null) return Results.Unauthorized();
+                if (user.Id == null) return Results.BadRequest("User ID is null");
 
                 var joinCode = Guid.NewGuid().ToString().Substring(0, 6);
 
