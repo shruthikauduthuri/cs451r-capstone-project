@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "oj2c/bMLMwE=",
+  "dgSpecHash": "NXCOLjsBoxQ=",
   "success": true,
   "projectFilePath": "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\api.csproj",
   "expectedPackageFiles": [
@@ -30,11 +30,7 @@
     "C:\\Users\\nicho\\.nuget\\packages\\system.reactive\\6.0.0\\system.reactive.6.0.0.nupkg.sha512",
     "C:\\Users\\nicho\\.nuget\\packages\\system.text.json\\8.0.5\\system.text.json.8.0.5.nupkg.sha512",
     "C:\\Users\\nicho\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512",
-    "C:\\Users\\nicho\\.nuget\\packages\\websocket.client\\5.1.1\\websocket.client.5.1.1.nupkg.sha512",
-    "C:\\Users\\nicho\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.14\\microsoft.netcore.app.ref.9.0.14.nupkg.sha512",
-    "C:\\Users\\nicho\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.14\\microsoft.windowsdesktop.app.ref.9.0.14.nupkg.sha512",
-    "C:\\Users\\nicho\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.14\\microsoft.aspnetcore.app.ref.9.0.14.nupkg.sha512",
-    "C:\\Users\\nicho\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.14\\microsoft.netcore.app.host.win-x64.9.0.14.nupkg.sha512"
+    "C:\\Users\\nicho\\.nuget\\packages\\websocket.client\\5.1.1\\websocket.client.5.1.1.nupkg.sha512"
   ],
   "logs": []
 }
