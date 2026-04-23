@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function IconHome() {
   return (
@@ -113,6 +114,13 @@ function Constellation() {
 }
 
 export default function MainLayout() {
+  const { user, profile, logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login");
+  }
   return (
     <div style={{ display: "flex", minHeight: "100vh", width: "100%" }}>
       <aside
@@ -171,8 +179,54 @@ export default function MainLayout() {
           })}
         </nav>
 
-        <div style={{ marginTop: "auto", padding: "16px 12px 8px", fontSize: 12, color: "#475569" }}>
-          Orion · Household finance
+        <div style={{ marginTop: "auto", padding: "12px" }}>
+          <div style={{
+            padding: "12px",
+            borderRadius: 10,
+            background: "rgba(255,255,255,0.04)",
+            marginBottom: 8,
+          }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "#f8fafc" }}>
+              {user?.user_metadata?.first_name
+                ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim()
+                : user?.email || "User"}
+            </p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748b" }}>
+              {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : "Member"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "10px 14px",
+              borderRadius: 10,
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              background: "rgba(239, 68, 68, 0.08)",
+              color: "#f87171",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => e.target.style.background = "rgba(239, 68, 68, 0.15)"}
+            onMouseLeave={(e) => e.target.style.background = "rgba(239, 68, 68, 0.08)"}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Log Out
+          </button>
+          <p style={{ margin: "8px 0 0", fontSize: 11, color: "#475569", textAlign: "center" }}>
+            Orion · Household finance
+          </p>
         </div>
       </aside>
 

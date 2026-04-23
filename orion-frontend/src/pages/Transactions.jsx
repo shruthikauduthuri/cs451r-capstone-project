@@ -24,11 +24,20 @@ function monthKey(iso) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
-const MONTH_OPTIONS = [
-  { key: "2026-04", label: "April 2026" },
-  { key: "2026-03", label: "March 2026" },
-  { key: "2026-02", label: "February 2026" },
-];
+function generateMonthOptions() {
+  const options = [];
+  const now = new Date();
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    options.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+    });
+  }
+  return options;
+}
+
+const MONTH_OPTIONS = generateMonthOptions();
 
 export default function Transactions() {
   const { categories, transactions, addTransaction, removeTransaction } = useOrionStore();
@@ -39,7 +48,10 @@ export default function Transactions() {
   useEffect(() => {
     async function loadMembers() {
       if (!profile?.household_id) {
-        setMembers([user?.user_metadata?.first_name || user?.email || "Me"]);
+        const name = user?.user_metadata?.first_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim()
+          : user?.email || "Me";
+        setMembers([name]);
         return;
       }
       const { data } = await supabase
@@ -49,14 +61,19 @@ export default function Transactions() {
       if (data?.length) {
         setMembers(data.map((m) => m.username || "Unknown"));
       } else {
-        setMembers([user?.user_metadata?.first_name || "Me"]);
+        const name = user?.user_metadata?.first_name
+          ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ""}`.trim()
+          : user?.email || "Me";
+        setMembers([name]);
       }
     }
-    loadMembers();
-  }, [profile]);
+    if (user) loadMembers();
+  }, [profile, user]);
 
-  const [selectedMonth, setSelectedMonth] = useState("2026-04");
-  const [form, setForm] = useState({
+  const [selectedMonth, setSelectedMonth] = useState(
+    `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
+  );
+    const [form, setForm] = useState({
     type: "expense",
     amount: "",
     category: "Groceries",
@@ -235,7 +252,7 @@ export default function Transactions() {
               <label className="tx-f">
                 Member
                 <select name="member" value={form.member} onChange={onChange}>
-                  {MEMBERS.map((m) => (
+                {members.map((m) => (
                     <option key={m} value={m}>
                       {m}
                     </option>

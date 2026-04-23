@@ -82,6 +82,12 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function logout() {
+    await supabase.auth.signOut();
+    setSession(null);
+    setProfile(null);
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -92,6 +98,7 @@ export function AuthProvider({ children }) {
         hasRole,
         hasAnyRole,
         refreshProfile,
+        logout,
       }}
     >
       {children}

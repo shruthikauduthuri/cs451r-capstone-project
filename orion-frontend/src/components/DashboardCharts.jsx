@@ -10,27 +10,24 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { useOrionStore } from "../data/useOrionStore";
 
-const PIE_DATA = [
-  { name: "Rent", value: 64, color: "#a855f7" },
-  { name: "Vacation", value: 19, color: "#3b82f6" },
-  { name: "Groceries", value: 9, color: "#22c55e" },
-  { name: "Utilities", value: 8, color: "#eab308" },
-];
+const CATEGORY_COLORS = {
+  Groceries: "#22c55e",
+  Rent: "#a855f7",
+  Utilities: "#eab308",
+  Vacation: "#3b82f6",
+  Dining: "#f97316",
+  Gas: "#64748b",
+  Salary: "#14b8a6",
+  Other: "#94a3b8",
+};
 
-const DOUGHNUT_DATA = [
-  { name: "Spent", value: 47, color: "#ef4444" },
-  { name: "Remaining", value: 53, color: "#14b8a6" },
-];
-
-const TREND_DATA = [
-  { month: "Sep", amount: 980 },
-  { month: "Oct", amount: 1200 },
-  { month: "Nov", amount: 890 },
-  { month: "Dec", amount: 1650 },
-  { month: "Jan", amount: 1420 },
-  { month: "Feb", amount: 1880 },
-];
+function getColor(name, index) {
+  if (CATEGORY_COLORS[name]) return CATEGORY_COLORS[name];
+  const fallback = ["#6366f1", "#ec4899", "#8b5cf6", "#06b6d4", "#84cc16", "#f43f5e"];
+  return fallback[index % fallback.length];
+}
 
 function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) {
   const RADIAN = Math.PI / 180;
@@ -74,12 +71,36 @@ function renderDoughnutLabel({ cx, cy, midAngle, outerRadius, percent, name }) {
 }
 
 export function SpendingByCategoryPie() {
+  const { transactions } = useOrionStore();
+
+  const expenses = transactions.filter((t) => t.type === "expense");
+  const totalExpense = expenses.reduce((s, t) => s + Number(t.amount), 0);
+
+  const categoryMap = {};
+  expenses.forEach((t) => {
+    categoryMap[t.category] = (categoryMap[t.category] || 0) + Number(t.amount);
+  });
+
+  const pieData = Object.entries(categoryMap).map(([name, value], i) => ({
+    name,
+    value: totalExpense > 0 ? Math.round((value / totalExpense) * 100) : 0,
+    color: getColor(name, i),
+  }));
+
+  if (pieData.length === 0) {
+    return (
+      <div style={{ height: 260, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 14 }}>
+        No expense data yet. Add transactions to see your spending breakdown.
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: "100%", height: 260 }}>
       <ResponsiveContainer>
         <PieChart>
           <Pie
-            data={PIE_DATA}
+            data={pieData}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -88,7 +109,7 @@ export function SpendingByCategoryPie() {
             labelLine={{ stroke: "#94a3b8" }}
             label={renderPieLabel}
           >
-            {PIE_DATA.map((entry) => (
+            {pieData.map((entry) => (
               <Cell key={entry.name} fill={entry.color} stroke="#fff" strokeWidth={1} />
             ))}
           </Pie>
@@ -103,12 +124,33 @@ export function SpendingByCategoryPie() {
 }
 
 export function BudgetStatusDoughnut() {
+  const { transactions } = useOrionStore();
+
+  const totalIncome = transactions.filter((t) => t.type === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const totalExpense = transactions.filter((t) => t.type === "expense").reduce((s, t) => s + Number(t.amount), 0);
+
+  if (totalIncome === 0 && totalExpense === 0) {
+    return (
+      <div style={{ height: 260, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 14 }}>
+        No budget data yet. Add income and expenses to see your status.
+      </div>
+    );
+  }
+
+  const spentPct = totalIncome > 0 ? Math.round((totalExpense / totalIncome) * 100) : 100;
+  const remainPct = Math.max(0, 100 - spentPct);
+
+  const doughnutData = [
+    { name: "Spent", value: spentPct, color: "#ef4444" },
+    { name: "Remaining", value: remainPct, color: "#14b8a6" },
+  ];
+
   return (
     <div style={{ width: "100%", height: 260 }}>
       <ResponsiveContainer>
         <PieChart>
           <Pie
-            data={DOUGHNUT_DATA}
+            data={doughnutData}
             dataKey="value"
             nameKey="name"
             cx="50%"
@@ -118,7 +160,7 @@ export function BudgetStatusDoughnut() {
             labelLine={{ stroke: "#94a3b8" }}
             label={renderDoughnutLabel}
           >
-            {DOUGHNUT_DATA.map((entry) => (
+            {doughnutData.map((entry) => (
               <Cell key={entry.name} fill={entry.color} stroke="#fff" strokeWidth={1} />
             ))}
           </Pie>
@@ -133,10 +175,36 @@ export function BudgetStatusDoughnut() {
 }
 
 export function SpendingTrendArea() {
+  const { transactions } = useOrionStore();
+
+  const expenses = transactions.filter((t) => t.type === "expense");
+
+  const monthMap = {};
+  expenses.forEach((t) => {
+    const d = new Date(t.date + "T12:00:00");
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    if (!monthMap[key]) monthMap[key] = { key, month: label, amount: 0 };
+    monthMap[key].amount += Number(t.amount);
+  });
+
+  const trendData = Object.values(monthMap).sort((a, b) => a.key.localeCompare(b.key));
+
+  if (trendData.length === 0) {
+    return (
+      <div style={{ height: 280, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8", fontSize: 14 }}>
+        No spending data yet. Add expense transactions to see trends over time.
+      </div>
+    );
+  }
+
+  const maxAmount = Math.max(...trendData.map((d) => d.amount));
+  const yMax = Math.ceil(maxAmount / 500) * 500 || 500;
+
   return (
     <div style={{ width: "100%", height: 280 }}>
       <ResponsiveContainer>
-        <AreaChart data={TREND_DATA} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <AreaChart data={trendData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="orionAreaFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
@@ -149,11 +217,10 @@ export function SpendingTrendArea() {
             tick={{ fill: "#64748b", fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            domain={[0, 2400]}
-            ticks={[0, 600, 1200, 1800, 2400]}
+            domain={[0, yMax]}
           />
           <Tooltip
-            formatter={(v) => [`$${v.toLocaleString()}`, "Spending"]}
+            formatter={(v) => [`$${Math.round(v).toLocaleString()}`, "Spending"]}
             contentStyle={{ borderRadius: 8, border: "1px solid #e2e8f0" }}
           />
           <Area
