@@ -1,14 +1,31 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "./Login.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
+    setLoading(true);
+    setErrorMsg("");
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password",
+    });
+
+    if (error) {
+      setErrorMsg(error.message);
+      setLoading(false);
+      return;
+    }
+
     setSubmitted(true);
+    setLoading(false);
   }
 
   return (
@@ -24,9 +41,7 @@ export default function ForgotPassword() {
           </p>
 
           <div className="login-brand">
-            <span className="login-star" aria-hidden="true">
-              ★
-            </span>
+            <span className="login-star" aria-hidden="true">★</span>
             <span className="login-brand-text">Orion</span>
           </div>
 
@@ -39,7 +54,7 @@ export default function ForgotPassword() {
             <div className="auth-message">
               <p>
                 If an account exists for <strong>{email}</strong>, you&apos;ll receive an email with reset
-                instructions shortly.
+                instructions shortly. Check your spam folder if you don&apos;t see it.
               </p>
               <Link to="/login" className="login-submit auth-submit-link">
                 Return to sign in
@@ -60,8 +75,12 @@ export default function ForgotPassword() {
                 />
               </div>
 
-              <button type="submit" className="login-submit">
-                Send reset link
+              {errorMsg && (
+                <p style={{ color: "#ef4444", fontSize: "0.875rem", margin: "0 0 8px" }}>{errorMsg}</p>
+              )}
+
+              <button type="submit" className="login-submit" disabled={loading}>
+                {loading ? "Sending..." : "Send reset link"}
               </button>
             </form>
           )}
