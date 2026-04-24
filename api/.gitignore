@@ -417,20 +417,20 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-api\appsettings.json
-api\obj
-api\bin
-api\Properties\launchSettings.json
-api\csproj
-api\appsettings.Development.json
-api\obj\Debug\net9.0\api.AssemblyInfo.cs
-api\obj\Debug\net9.0\api.AssemblyInfoInputs.cache
+appsettings.json
+obj
+bin
+Properties\launchSettings.json
+csproj
+appsettings.Development.json
+Debug\net9.0\api.AssemblyInfo.cs
+obj\Debug\net9.0\api.AssemblyInfoInputs.cache
 
-api/appsettings.json
-api/obj
-api/bin
-api/Properties/launchSettings.json
-api/csproj
-api/appsettings.Development.json
-api/obj/Debug\net9.0\api.AssemblyInfo.cs
-api/obj/Debug\net9.0\api.AssemblyInfoInputs.cache
+appsettings.json
+obj
+bin
+Properties\launchSettings.json
+csproj
+appsettings.Development.json
+Debug\net9.0\api.AssemblyInfo.cs
+obj\Debug\net9.0\api.AssemblyInfoInputs.cache
