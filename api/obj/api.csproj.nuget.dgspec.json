@@ -1,31 +1,26 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\api.csproj": {}
+    "/Users/berenicemoreno-perez/Documents/GitHub/cs451r-capstone-project/api/api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\api.csproj": {
+    "/Users/berenicemoreno-perez/Documents/GitHub/cs451r-capstone-project/api/api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\api.csproj",
+        "projectUniqueName": "/Users/berenicemoreno-perez/Documents/GitHub/cs451r-capstone-project/api/api.csproj",
         "projectName": "api",
-        "projectPath": "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\api.csproj",
-        "packagesPath": "C:\\Users\\nicho\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\nicho\\OneDrive\\Documents\\Capstone\\cs451r-capstone-project\\api\\obj\\",
+        "projectPath": "/Users/berenicemoreno-perez/Documents/GitHub/cs451r-capstone-project/api/api.csproj",
+        "packagesPath": "/Users/berenicemoreno-perez/.nuget/packages/",
+        "outputPath": "/Users/berenicemoreno-perez/Documents/GitHub/cs451r-capstone-project/api/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\nicho\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/berenicemoreno-perez/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
@@ -43,12 +38,24 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.300"
+        "SdkAnalysisLevel": "10.0.200"
       },
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "Microsoft.AspNetCore.Authentication.JwtBearer": {
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Serilog.AspNetCore": {
+              "target": "Package",
+              "version": "[10.0.0, )"
+            },
+            "Serilog.Sinks.File": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
             "Supabase": {
               "target": "Package",
               "version": "[1.1.1, )"
@@ -77,7 +84,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.203/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

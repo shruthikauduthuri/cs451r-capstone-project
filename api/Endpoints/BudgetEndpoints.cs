@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api;
-using api.Contracts;
 using api.Models;
 using Supabase;
 
@@ -15,32 +9,71 @@ namespace api.Endpoints
         {
             app.MapPost("/api/budgets", async (Client supabase, Budget request) =>
             {
-                var response = await supabase.From<Budget>().Insert(request);
-                return Results.Ok(response.Models.First());
+                try
+                {
+                    var response = await supabase.From<Budget>().Insert(request);
+                    return Results.Ok(response.Models.First());
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapGet("/api/budgets", async (Client supabase) =>
             {
-                var response = await supabase.From<Budget>().Get();
-                return Results.Ok(response.Models);
+                try
+                {
+                    var response = await supabase.From<Budget>().Get();
+                    return Results.Ok(response.Models);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapGet("/api/budgets/{id}", async (Client supabase, long id) =>
             {
-                var response = await supabase.From<Budget>().Where(b => b.Id == id).Get();
-                return Results.Ok(response.Models.FirstOrDefault());
+                try
+                {
+                    var response = await supabase.From<Budget>().Where(b => b.Id == id).Get();
+                    var budget = response.Models.FirstOrDefault();
+                    if (budget == null)
+                        return Results.Json(new { error = "NotFound", message = $"Budget {id} not found." }, statusCode: 404);
+
+                    return Results.Ok(budget);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPut("/api/budgets/{id}", async (Client supabase, long id, Budget request) =>
             {
-                await supabase.From<Budget>().Where(b => b.Id == id).Update(request);
-                return Results.Ok();
+                try
+                {
+                    await supabase.From<Budget>().Where(b => b.Id == id).Update(request);
+                    return Results.Ok(new { message = "Budget updated." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapDelete("/api/budgets/{id}", async (Client supabase, long id) =>
             {
-                await supabase.From<Budget>().Where(b => b.Id == id).Delete();
-                return Results.NoContent();
+                try
+                {
+                    await supabase.From<Budget>().Where(b => b.Id == id).Delete();
+                    return Results.NoContent();
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
         }
     }

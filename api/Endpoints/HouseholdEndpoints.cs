@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api;
 using api.Contracts.Household;
 using api.Models;
 using Supabase;
@@ -15,53 +10,99 @@ namespace api.Endpoints
         {
             app.MapPost("/api/households", async (Client supabase) =>
             {
-                var user = supabase.Auth.CurrentUser;
-                if (user == null) return Results.Unauthorized();
-                if (user.Id == null) return Results.BadRequest("User ID is null");
-
-                var joinCode = Guid.NewGuid().ToString().Substring(0, 6);
-
-                var response = await supabase.From<Household>().Insert(new Household
+                try
                 {
-                    AdminId = user.Id,
-                    JoinCode = joinCode
-                });
+                    var user = supabase.Auth.CurrentUser;
+                    if (user == null)
+                        return Results.Json(new { error = "Unauthorized", message = "No active session." }, statusCode: 401);
+                    if (user.Id == null)
+                        return Results.Json(new { error = "BadRequest", message = "User ID is null." }, statusCode: 400);
 
-                return Results.Ok(response.Models.First());
+                    var joinCode = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+                    var response = await supabase.From<Household>().Insert(new Household
+                    {
+                        AdminId = user.Id,
+                        JoinCode = joinCode
+                    });
+                    return Results.Ok(response.Models.First());
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPost("/api/households/join", async (Client supabase, JoinHouseholdRequest request) =>
             {
-                var user = supabase.Auth.CurrentUser;
-                if (user == null) return Results.Unauthorized();
+                try
+                {
+                    var user = supabase.Auth.CurrentUser;
+                    if (user == null)
+                        return Results.Json(new { error = "Unauthorized", message = "No active session." }, statusCode: 401);
 
-                // TODO: lookup household and add member
-                return Results.Ok();
+                    // TODO: lookup household by join code and add member
+                    return Results.Ok(new { message = "Joined household." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapGet("/api/households/{id}", async (Client supabase, long id) =>
             {
-                var household = await supabase.From<Household>()
-                    .Where(h => h.Id == id)
-                    .Get();
+                try
+                {
+                    var response = await supabase.From<Household>().Where(h => h.Id == id).Get();
+                    var household = response.Models.FirstOrDefault();
+                    if (household == null)
+                        return Results.Json(new { error = "NotFound", message = $"Household {id} not found." }, statusCode: 404);
 
-                return Results.Ok(household.Models.FirstOrDefault());
+                    return Results.Ok(household);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPut("/api/households/{id}", async (Client supabase, long id, HouseholdUpdateRequest request) =>
             {
-                // TODO: Admin check
-                return Results.Ok();
+                try
+                {
+                    // TODO: admin check
+                    return Results.Ok(new { message = "Household updated." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId) =>
             {
-                return Results.Ok();
+                try
+                {
+                    // TODO: implement member update
+                    return Results.Ok(new { message = "Member updated." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId) =>
             {
-                return Results.Ok();
+                try
+                {
+                    // TODO: implement member removal
+                    return Results.NoContent();
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
         }
     }

@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import CreateAccount from "./pages/CreateAccount";
 import AskAI from "./pages/AskAI";
 import ResetPassword from "./pages/ResetPassword";
+import ApiTester from "./components/ApiTester";
 
 function ProtectedRoute() {
   const { session, loading } = useAuth();
@@ -63,6 +64,7 @@ function AppRoutes() {
           <Route path="/household" element={<Household />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/ask-ai" element={<AskAI />} />
+          <Route path="/test" element={<ApiTester />} />
         </Route>
       </Route>
     </Routes>

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api;
 using api.Contracts.Auth;
 using api.Models;
 using Supabase;
@@ -15,56 +10,76 @@ namespace api.Endpoints
         {
             app.MapPost("/api/auth/register", async (Client supabase, RegisterRequest request) =>
             {
-                var auth = await supabase.Auth.SignUp(request.Email, request.Password);
-
-                if (auth?.User == null)
-                    return Results.BadRequest("Registration failed");
-
-                return Results.Ok(new
+                try
                 {
-                    Token = auth.AccessToken,
-                    UserId = auth.User.Id
-                });
+                    var auth = await supabase.Auth.SignUp(request.Email, request.Password);
+                    if (auth?.User == null)
+                        return Results.Json(new { error = "RegistrationFailed", message = "Could not create account." }, statusCode: 400);
+
+                    return Results.Ok(new { token = auth.AccessToken, userId = auth.User.Id });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPost("/api/auth/login", async (Client supabase, LoginRequest request) =>
             {
-                var auth = await supabase.Auth.SignIn(request.Email, request.Password);
-
-                if (auth?.User == null)
-                    return Results.Unauthorized();
-
-                return Results.Ok(new
+                try
                 {
-                    Token = auth.AccessToken,
-                    UserId = auth.User.Id
-                });
+                    var auth = await supabase.Auth.SignIn(request.Email, request.Password);
+                    if (auth?.User == null)
+                        return Results.Json(new { error = "Unauthorized", message = "Invalid email or password." }, statusCode: 401);
+
+                    return Results.Ok(new { token = auth.AccessToken, userId = auth.User.Id });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPost("/api/auth/logout", async (Client supabase) =>
             {
-                await supabase.Auth.SignOut();
-                return Results.Ok();
+                try
+                {
+                    await supabase.Auth.SignOut();
+                    return Results.Ok(new { message = "Logged out successfully." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPost("/api/auth/reset-password", async (Client supabase, ResetPasswordRequest request) =>
             {
-                await supabase.Auth.ResetPasswordForEmail(request.Email);
-                return Results.Ok("Password reset email sent.");
+                try
+                {
+                    await supabase.Auth.ResetPasswordForEmail(request.Email);
+                    return Results.Ok(new { message = "Password reset email sent." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapGet("/api/auth/session", async (Client supabase) =>
             {
-                var session = supabase.Auth.CurrentSession;
-
-                if (session == null || session.User == null)
-                    return Results.Unauthorized();
-
-                return Results.Ok(new
+                try
                 {
-                    session.User.Id,
-                    session.User.Email
-                });
+                    var session = supabase.Auth.CurrentSession;
+                    if (session == null || session.User == null)
+                        return Results.Json(new { error = "Unauthorized", message = "No active session." }, statusCode: 401);
+
+                    return Results.Ok(new { userId = session.User.Id, email = session.User.Email });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
         }
     }

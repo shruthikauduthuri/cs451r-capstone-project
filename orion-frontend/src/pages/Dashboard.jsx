@@ -3,12 +3,18 @@ import { useOrionStore } from "../data/useOrionStore";
 import { SpendingByCategoryPie, BudgetStatusDoughnut, SpendingTrendArea } from "../components/DashboardCharts";
 import { downloadTextReport } from "../utils/downloadReport";
 import "./Dashboard.css";
+import { useEffect, useState } from "react";
+import { getCurrentUser } from "../services/api.js";
 
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
 }
 
 export default function Dashboard() {
+
+  const [apiUser, setApiUser] = useState(null);
+  const [apiError, setApiError] = useState(null);
+  
   const { user, profile } = useAuth();
   const { transactions } = useOrionStore();
 
@@ -34,6 +40,18 @@ export default function Dashboard() {
       }),
     ]);
   }
+
+  useEffect(() => {
+    getCurrentUser()
+      .then((data) => {
+        console.log("API user:", data);
+        setApiUser(data);
+      })
+      .catch((err) => {
+        console.error("API error:", err);
+        setApiError(err.message);
+      });
+  }, []);
 
   return (
     <div className="dash-page">

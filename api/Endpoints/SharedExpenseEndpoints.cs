@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using api;
-using api.Contracts;
 using api.Models;
 using Supabase;
 
@@ -15,20 +9,41 @@ namespace api.Endpoints
         {
             app.MapGet("/api/shared-expenses", async (Client supabase) =>
             {
-                var response = await supabase.From<SharedExpense>().Get();
-                return Results.Ok(response.Models);
+                try
+                {
+                    var response = await supabase.From<SharedExpense>().Get();
+                    return Results.Ok(response.Models);
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPost("/api/shared-expenses", async (Client supabase, SharedExpense request) =>
             {
-                var response = await supabase.From<SharedExpense>().Insert(request);
-                return Results.Ok(response.Models.First());
+                try
+                {
+                    var response = await supabase.From<SharedExpense>().Insert(request);
+                    return Results.Ok(response.Models.First());
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
 
             app.MapPut("/api/shared-expenses/{id}", async (Client supabase, long id, SharedExpense request) =>
             {
-                await supabase.From<SharedExpense>().Where(se => se.Id == id).Update(request);
-                return Results.Ok();
+                try
+                {
+                    await supabase.From<SharedExpense>().Where(se => se.Id == id).Update(request);
+                    return Results.Ok(new { message = "Shared expense updated." });
+                }
+                catch (Exception ex)
+                {
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
             });
         }
     }
