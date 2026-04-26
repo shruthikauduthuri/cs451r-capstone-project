@@ -143,41 +143,6 @@ namespace api.Endpoints
                 logger.LogInformation("Account {AccountId} deleted for user {UserId}", id, user.Id);
                 return Results.Ok();
             });
-            app.MapGet("/api/accounts/me", async (Client supabase, ILogger logger) =>
-            {
-                logger.LogInformation("Retrieving current account information");
-                var user = supabase.Auth.CurrentUser;
-                if (user == null)
-                {
-                    logger.LogWarning("Unauthorized attempt to retrieve account information");
-                    return Results.Unauthorized();
-                }
-
-                logger.LogInformation("Account information retrieved for {UserId}", user.Id);
-                return Results.Ok(user);
-            });
-
-            app.MapPut("/api/accounts/me", async (Client supabase, UpdateAccountRequest request, ILogger logger) =>
-            {
-                var user = supabase.Auth.CurrentUser;
-                if (user == null)
-                {
-                    logger.LogWarning("Unauthorized attempt to update account information");
-                    return Results.Unauthorized();
-                }
-
-                logger.LogInformation("Updating account information for {AccountId}", user.Id);
-                // Example update (extend to your DB model)
-                await supabase.From<Account>()
-                    .Where(a => a.UserId == user.Id)
-                    .Set(a => a.Name, request.Name)
-                    .Set(a => a.Type, request.Type)
-                    .Set(a => a.Balance, request.Balance)
-                    .Update();
-
-                logger.LogInformation("Account information updated for {AccountId}", user.Id);
-                return Results.Ok();
-            });
 
             app.MapPost("/api/accounts/transition", async (Client supabase, ILogger logger) =>
             {
