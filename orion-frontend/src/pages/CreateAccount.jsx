@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
-import { supabase } from "../supabaseClient";
+import { apiAuth } from "../services/api";
 import { useSnackbar } from "../components/Snackbar";
 
 export default function CreateAccount() {
@@ -31,40 +31,36 @@ export default function CreateAccount() {
 
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email.trim(),
-      password: form.password,
-      options: {
-        data: {
-          first_name: form.firstName.trim(),
-          last_name: form.lastName.trim(),
-        },
-        emailRedirectTo: "http://localhost:5173/login",
-      },
-    });
+    try {
+      const { userId } = await apiAuth.register({
+        email: form.email.trim(),
+        password: form.password,
+      });
 
-    console.log("SIGNUP DATA:", data);
-    console.log("SIGNUP ERROR:", error);
+      if (!userId) {
+        showSnackbar("Registration failed. Please try again.", "error");
+        return;
+      }
 
-    setLoading(false);
+      showSnackbar("Account created! Check your email for a verification link.", "success");
 
-    if (error) {
-      if (error.message.toLowerCase().includes("rate limit")) {
+      navigate(`/login?email=${encodeURIComponent(form.email.trim())}`, {
+        replace: false,
+      });
+    } catch (err) {
+      console.error("SIGNUP ERROR:", err);
+      const raw = err.message || "";
+      if (raw.toLowerCase().includes("rate limit")) {
         showSnackbar(
-          "Supabase email sending limit was hit. Wait a while before trying again, or turn off Confirm email in Supabase while testing.",
+          "Email sending limit was hit. Wait a while before trying again, or turn off Confirm email in Supabase while testing.",
           "error"
         );
       } else {
-        showSnackbar(error.message, "error");
+        showSnackbar(raw || "Registration failed. Please try again.", "error");
       }
-      return;
+    } finally {
+      setLoading(false);
     }
-
-    showSnackbar("Account created! Check your email for a verification link.", "success");
-
-    navigate(`/login?email=${encodeURIComponent(form.email.trim())}`, {
-      replace: false,
-    });
   }
 
   return (
