@@ -17,6 +17,12 @@ namespace api.Models
         [Column("name")]
         public string Name { get; set; } = string.Empty;
 
+        [Column("household_id")]
+        public long? HouseholdId { get; set; }
+
+        [Column("role")]
+        public string Role { get; set; } = string.Empty;
+
         [Column("created_at")]
         public DateTimeOffset Created_at { get; set; }
     }

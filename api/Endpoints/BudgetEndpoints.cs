@@ -6,6 +6,7 @@ using api;
 using api.Contracts;
 using api.Models;
 using Supabase;
+using Microsoft.Extensions.Logging;
 
 namespace api.Endpoints
 {
@@ -13,33 +14,51 @@ namespace api.Endpoints
     {
         public static void MapBudgetEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/budgets", async (Client supabase, Budget request) =>
+            app.MapPost("/api/budgets", async (Client supabase, Budget request, ILogger logger) =>
             {
+                logger.LogInformation("Creating new budget");
                 var response = await supabase.From<Budget>().Insert(request);
+                logger.LogInformation("Budget created with ID {Id}", response.Models.First().Id);
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapGet("/api/budgets", async (Client supabase) =>
+            app.MapGet("/api/budgets", async (Client supabase, ILogger logger) =>
             {
+                logger.LogInformation("Retrieving all budgets");
                 var response = await supabase.From<Budget>().Get();
+                logger.LogInformation("Retrieved {Count} budgets", response.Models.Count);
                 return Results.Ok(response.Models);
             });
 
-            app.MapGet("/api/budgets/{id}", async (Client supabase, long id) =>
+            app.MapGet("/api/budgets/{id}", async (Client supabase, long id, ILogger logger) =>
             {
+                logger.LogInformation("Retrieving budget with ID {Id}", id);
                 var response = await supabase.From<Budget>().Where(b => b.Id == id).Get();
-                return Results.Ok(response.Models.FirstOrDefault());
+                var budget = response.Models.FirstOrDefault();
+                if (budget == null)
+                {
+                    logger.LogWarning("Budget with ID {Id} not found", id);
+                }
+                else
+                {
+                    logger.LogInformation("Budget with ID {Id} retrieved", id);
+                }
+                return Results.Ok(budget);
             });
 
-            app.MapPut("/api/budgets/{id}", async (Client supabase, long id, Budget request) =>
+            app.MapPut("/api/budgets/{id}", async (Client supabase, long id, Budget request, ILogger logger) =>
             {
+                logger.LogInformation("Updating budget with ID {Id}", id);
                 await supabase.From<Budget>().Where(b => b.Id == id).Update(request);
+                logger.LogInformation("Budget with ID {Id} updated", id);
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/budgets/{id}", async (Client supabase, long id) =>
+            app.MapDelete("/api/budgets/{id}", async (Client supabase, long id, ILogger logger) =>
             {
+                logger.LogInformation("Deleting budget with ID {Id}", id);
                 await supabase.From<Budget>().Where(b => b.Id == id).Delete();
+                logger.LogInformation("Budget with ID {Id} deleted", id);
                 return Results.NoContent();
             });
         }

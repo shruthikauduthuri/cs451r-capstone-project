@@ -7,6 +7,6 @@ namespace api.Contracts.Household
 {
     public class JoinHouseholdRequest
     {
-        
+        public string? JoinCode { get; set; }
     }
 }
