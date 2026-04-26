@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
-import { downloadTextReport } from "../utils/downloadReport";
+import { downloadTransactionsReport } from "../utils/downloadReport";
 import "./Transactions.css";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
@@ -118,19 +118,12 @@ export default function Transactions() {
   }
 
   function handleDownloadReport() {
-    downloadTextReport(`orion-transactions-${selectedMonth}.txt`, [
-      "Orion — Transactions report",
-      `Period: ${MONTH_OPTIONS.find((m) => m.key === selectedMonth)?.label || selectedMonth}`,
-      "",
-      `Total Income: ${formatMoney(totals.income)}`,
-      `Total Expenses: ${formatMoney(totals.expense)}`,
-      "",
-      "Transactions:",
-      ...filtered.map(
-        (t) =>
-          `  ${formatDisplayDate(t.date)} · ${t.category} · ${t.type} · ${formatMoney(Number(t.amount))} · ${t.member || "—"}`
-      ),
-    ]);
+    const monthObj = MONTH_OPTIONS.find(m => m.key === selectedMonth);
+    downloadTransactionsReport({
+      transactions,
+      selectedMonth,
+      monthLabel: monthObj?.label || selectedMonth,
+    });
   }
 
   return (
@@ -150,7 +143,6 @@ export default function Transactions() {
         <div className="tx-card-head">
           <div>
             <h2 className="orion-card-title">All Transactions</h2>
-            <span className="orion-badge tx-inline-badge">Transaction list from API</span>
           </div>
         </div>
 

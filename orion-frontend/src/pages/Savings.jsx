@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useOrionStore } from "../data/useOrionStore";
-import { downloadTextReport } from "../utils/downloadReport";
+import { downloadSavingsReport } from "../utils/downloadReport";
 import "./Savings.css";
 
 const VISIBILITY_OPTIONS = [
@@ -77,15 +77,7 @@ export default function Savings() {
   }
 
   function handleDownloadReport() {
-    downloadTextReport("orion-savings-goals.txt", [
-      "Orion — Savings goals",
-      `Total saved across goals: ${formatMoney(totalSaved)}`,
-      "",
-      ...visibleGoals.map((g) => {
-        const p = Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100));
-        return `${g.name}: ${formatMoney(g.currentAmount)} / ${formatMoney(g.targetAmount)} (${p}%)`;
-      }),
-    ]);
+    downloadSavingsReport({ goals: visibleGoals });
   }
 
   return (
