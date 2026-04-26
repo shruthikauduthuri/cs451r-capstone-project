@@ -137,7 +137,8 @@ export function BudgetStatusDoughnut() {
     );
   }
 
-  const spentPct = totalIncome > 0 ? Math.round((totalExpense / totalIncome) * 100) : 100;
+  const rawSpentPct = totalIncome > 0 ? (totalExpense / totalIncome) * 100 : 100;
+  const spentPct = totalExpense > 0 ? Math.max(1, Math.ceil(rawSpentPct)) : 0;
   const remainPct = Math.max(0, 100 - spentPct);
 
   const doughnutData = [

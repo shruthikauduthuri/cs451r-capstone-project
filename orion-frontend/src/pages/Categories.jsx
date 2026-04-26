@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
-import { downloadTextReport } from "../utils/downloadReport";
+import { downloadCategoriesReport } from "../utils/downloadReport";
 import "./Categories.css";
 
 export default function Categories() {
-  const { categories, addCategory, removeCategory } = useOrionStore();
-  const [name, setName] = useState("");
+  const { categories, transactions, addCategory, removeCategory } = useOrionStore();
+    const [name, setName] = useState("");
 
   function onSubmit(e) {
     e.preventDefault();
@@ -18,11 +18,7 @@ export default function Categories() {
   }
 
   function handleDownloadAll() {
-    downloadTextReport("orion-budget-categories.txt", [
-      "Orion — Budget categories",
-      "",
-      ...categories.map((c) => `• ${c}`),
-    ]);
+    downloadCategoriesReport({ categories, transactions });
   }
 
   return (
