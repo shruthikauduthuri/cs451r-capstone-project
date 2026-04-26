@@ -7,18 +7,24 @@ namespace api.Endpoints
     {
         public static void MapSharedExpenseEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/shared-expenses", async (Client supabase) =>
+            app.MapGet("/api/shared-expenses", async (Client supabase, HttpContext ctx) =>
             {
                 try
                 {
-                    var response = await supabase.From<SharedExpense>().Get();
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    if (userId == null)
+                        return Results.Json(new { error = "Unauthorized" }, statusCode: 401);
+
+                    var response = await supabase.From<SharedExpense>()
+                        .Where(se => se.CreatedBy == userId)
+                        .Get();
                     return Results.Ok(response.Models);
                 }
                 catch (Exception ex)
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
             app.MapPost("/api/shared-expenses", async (Client supabase, SharedExpense request) =>
             {
@@ -31,9 +37,9 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, long id, SharedExpense request) =>
+            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, string id, SharedExpense request) =>
             {
                 try
                 {
@@ -44,7 +50,7 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
         }
     }
 }

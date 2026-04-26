@@ -18,22 +18,28 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapGet("/api/goals", async (Client supabase) =>
+            app.MapGet("/api/goals", async (Client supabase, HttpContext ctx) =>
             {
                 try
                 {
-                    var response = await supabase.From<Goal>().Get();
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    if (userId == null)
+                        return Results.Json(new { error = "Unauthorized" }, statusCode: 401);
+
+                    var response = await supabase.From<Goal>()
+                        .Where(g => g.UserId == userId)
+                        .Get();
                     return Results.Ok(response.Models);
                 }
                 catch (Exception ex)
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapGet("/api/goals/{id}", async (Client supabase, long id) =>
+            app.MapGet("/api/goals/{id}", async (Client supabase, string id) =>
             {
                 try
                 {
@@ -41,16 +47,15 @@ namespace api.Endpoints
                     var goal = response.Models.FirstOrDefault();
                     if (goal == null)
                         return Results.Json(new { error = "NotFound", message = $"Goal {id} not found." }, statusCode: 404);
-
                     return Results.Ok(goal);
                 }
                 catch (Exception ex)
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPut("/api/goals/{id}", async (Client supabase, long id, Goal request) =>
+            app.MapPut("/api/goals/{id}", async (Client supabase, string id, Goal request) =>
             {
                 try
                 {
@@ -61,9 +66,9 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapDelete("/api/goals/{id}", async (Client supabase, long id) =>
+            app.MapDelete("/api/goals/{id}", async (Client supabase, string id) =>
             {
                 try
                 {
@@ -74,7 +79,7 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
         }
     }
 }

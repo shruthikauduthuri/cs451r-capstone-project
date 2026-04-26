@@ -1,5 +1,3 @@
-using api.Contracts.User;
-using api.Models;
 using Microsoft.Extensions.Logging;
 using Supabase;
 
@@ -9,67 +7,54 @@ namespace api.Endpoints
     {
         public static void MapUserEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/users/me", (HttpRequest req, ILogger<Program> logger) =>
+            // Now that JWT middleware handles auth, we just read the claims directly
+            app.MapGet("/api/users/me", async (Client supabase, HttpContext ctx, ILogger<Program> logger) =>
             {
-                var authHeader = req.Headers.Authorization.ToString();
-
-                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    logger.LogWarning("GET /api/users/me - Missing or malformed Authorization header. IP: {IP}",
-                        req.HttpContext.Connection.RemoteIpAddress);
-                    return Results.Json(new { error = "Unauthorized", message = "Missing or invalid token" }, statusCode: 401);
-                }
-
-                var token = authHeader.Replace("Bearer ", "");
-                var parts = token.Split('.');
-
-                if (parts.Length != 3)
-                {
-                    logger.LogWarning("GET /api/users/me - Malformed JWT token.");
-                    return Results.Json(new { error = "Unauthorized", message = "Malformed token" }, statusCode: 401);
-                }
-
                 try
                 {
-                    var payload = parts[1];
-                    var jsonBytes = Convert.FromBase64String(PadBase64(payload));
-                    var json = System.Text.Encoding.UTF8.GetString(jsonBytes);
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    var email = ctx.User.FindFirst("email")?.Value;
 
-                    logger.LogInformation("GET /api/users/me - Token decoded successfully.");
-                    return Results.Ok(new { message = "Token received", payload = json });
+                    if (userId == null)
+                        return Results.Json(new { error = "Unauthorized", message = "Missing or invalid token" }, statusCode: 401);
+
+                    // Fetch the user's profile from the database
+                    var response = await supabase.From<api.Models.Profile>()
+                        .Where(p => p.Id == userId)
+                        .Get();
+
+                    var profile = response.Models.FirstOrDefault();
+                    if (profile == null)
+                        return Results.Json(new { error = "NotFound", message = "Profile not found." }, statusCode: 404);
+
+                    logger.LogInformation("GET /api/users/me - User {UserId} fetched successfully.", userId);
+                    return Results.Ok(new { userId, email, profile });
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "GET /api/users/me - Failed to decode token.");
-                    return Results.Json(new { error = "ServerError", message = "Failed to process token" }, statusCode: 500);
+                    logger.LogError(ex, "GET /api/users/me - Failed.");
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPost("/api/users/transition", async (Client supabase, ILogger<Program> logger) =>
+            app.MapPost("/api/users/transition", async (Client supabase, HttpContext ctx, ILogger<Program> logger) =>
             {
-                var user = supabase.Auth.CurrentUser;
-
-                if (user == null)
+                try
                 {
-                    logger.LogWarning("POST /api/users/transition - No authenticated user found.");
-                    return Results.Json(new { error = "Unauthorized", message = "No active session" }, statusCode: 401);
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    if (userId == null)
+                        return Results.Json(new { error = "Unauthorized", message = "No active session" }, statusCode: 401);
+
+                    logger.LogInformation("POST /api/users/transition - User {UserId} transitioning account.", userId);
+                    // TODO: implement transition logic
+                    return Results.Ok(new { message = "Account transitioned" });
                 }
-
-                logger.LogInformation("POST /api/users/transition - User {UserId} transitioning account.", user.Id);
-                // TODO: implement transition logic
-                return Results.Ok(new { message = "Account transitioned" });
-            });
-        }
-
-        static string PadBase64(string base64)
-        {
-            int mod = base64.Length % 4;
-            return mod switch
-            {
-                2 => base64 + "==",
-                3 => base64 + "=",
-                _ => base64
-            };
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "POST /api/users/transition - Failed.");
+                    return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
+                }
+            }).RequireAuthorization();
         }
     }
 }

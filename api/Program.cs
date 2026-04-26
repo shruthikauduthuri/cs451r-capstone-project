@@ -1,37 +1,52 @@
-using api;
-using api.Contracts;
-using api.Models;
-using Supabase;
 using api.Endpoints;
-using MapAuthEndpoints = api.Endpoints.AuthEndpoints;
-using MapUserEndpoints = api.Endpoints.UserEndpoints;
-using MapHouseholdEndpoints = api.Endpoints.HouseholdEndpoints;
-using MapBudgetEndpoints = api.Endpoints.BudgetEndpoints;
-using MapTransactionEndpoints = api.Endpoints.TransactionEndpoints;
-using MapGoalEndpoints = api.Endpoints.GoalEndpoints;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using Supabase;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-//builder.Services.AddOpenApi();
+// Logging
 Log.Logger = new LoggerConfiguration()
     .WriteTo.File("logs/app.log", rollingInterval: RollingInterval.Day)
     .CreateLogger();
-
 builder.Host.UseSerilog();
 
-var supabaseUrl = builder.Configuration["Supabase:Url"] 
-        ?? throw new Exception("Supabase Url missing");
-
-var supabaseKey = builder.Configuration["Supabase:Key"] 
+// Supabase client
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new Exception("Supabase Url missing");
+var supabaseKey = builder.Configuration["Supabase:Key"]
     ?? throw new Exception("Supabase Key missing");
+var supabaseJwtSecret = builder.Configuration["Supabase:JwtSecret"]
+    ?? throw new Exception("Supabase JwtSecret missing");
 
 builder.Services.AddSingleton<Client>(_ =>
     new Client(supabaseUrl, supabaseKey)
 );
 
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(supabaseJwtSecret)
+            ),
+            ValidateIssuer = true,
+            ValidIssuer = $"{supabaseUrl}/auth/v1",
+            ValidateAudience = true,
+            ValidAudience = "authenticated",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -45,14 +60,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    //app.MapOpenApi();
+    // app.MapOpenApi();
 }
 
+// Middleware order matters — CORS → Auth → endpoints
 app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseHttpsRedirection();
 
+// Endpoints
 app.MapAuthEndpoints();
 app.MapUserEndpoints();
 app.MapHouseholdEndpoints();
@@ -60,7 +79,5 @@ app.MapBudgetEndpoints();
 app.MapTransactionEndpoints();
 app.MapGoalEndpoints();
 app.MapSharedExpenseEndpoints();
-
-app.UseHttpsRedirection();
 
 app.Run();

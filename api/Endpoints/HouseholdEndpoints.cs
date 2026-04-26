@@ -8,20 +8,18 @@ namespace api.Endpoints
     {
         public static void MapHouseholdEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/households", async (Client supabase) =>
+            app.MapPost("/api/households", async (Client supabase, HttpContext ctx) =>
             {
                 try
                 {
-                    var user = supabase.Auth.CurrentUser;
-                    if (user == null)
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    if (userId == null)
                         return Results.Json(new { error = "Unauthorized", message = "No active session." }, statusCode: 401);
-                    if (user.Id == null)
-                        return Results.Json(new { error = "BadRequest", message = "User ID is null." }, statusCode: 400);
 
                     var joinCode = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
                     var response = await supabase.From<Household>().Insert(new Household
                     {
-                        AdminId = user.Id,
+                        AdminId = userId,
                         JoinCode = joinCode
                     });
                     return Results.Ok(response.Models.First());
@@ -30,14 +28,14 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPost("/api/households/join", async (Client supabase, JoinHouseholdRequest request) =>
+            app.MapPost("/api/households/join", async (Client supabase, HttpContext ctx, JoinHouseholdRequest request) =>
             {
                 try
                 {
-                    var user = supabase.Auth.CurrentUser;
-                    if (user == null)
+                    var userId = ctx.User.FindFirst("sub")?.Value;
+                    if (userId == null)
                         return Results.Json(new { error = "Unauthorized", message = "No active session." }, statusCode: 401);
 
                     // TODO: lookup household by join code and add member
@@ -47,9 +45,9 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapGet("/api/households/{id}", async (Client supabase, long id) =>
+            app.MapGet("/api/households/{id}", async (Client supabase, string id) =>
             {
                 try
                 {
@@ -57,16 +55,15 @@ namespace api.Endpoints
                     var household = response.Models.FirstOrDefault();
                     if (household == null)
                         return Results.Json(new { error = "NotFound", message = $"Household {id} not found." }, statusCode: 404);
-
                     return Results.Ok(household);
                 }
                 catch (Exception ex)
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPut("/api/households/{id}", async (Client supabase, long id, HouseholdUpdateRequest request) =>
+            app.MapPut("/api/households/{id}", async (Client supabase, string id, HouseholdUpdateRequest request) =>
             {
                 try
                 {
@@ -77,9 +74,9 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId) =>
+            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, string id, string userId) =>
             {
                 try
                 {
@@ -90,9 +87,9 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
 
-            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId) =>
+            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, string id, string userId) =>
             {
                 try
                 {
@@ -103,7 +100,7 @@ namespace api.Endpoints
                 {
                     return Results.Json(new { error = "ServerError", message = ex.Message }, statusCode: 500);
                 }
-            });
+            }).RequireAuthorization();
         }
     }
 }
