@@ -15,6 +15,12 @@ namespace api.Models
         [PrimaryKey("id", false)]
         public long Id { get; set; }
 
-        // Add other properties as needed
+        public long Household_id { get; set; }
+        public long Created_by { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public string Split_type { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTimeOffset Created_at { get; set; }
     }
 }
