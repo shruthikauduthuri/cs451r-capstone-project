@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SnackbarProvider } from "./components/Snackbar";
 import MainLayout from "./layout/MainLayout";
 
 import Dashboard from "./pages/Dashboard";
@@ -50,9 +51,9 @@ function AppRoutes() {
         path="/login"
         element={session ? <Navigate to="/dashboard" replace /> : <Login />}
       />
-<Route path="/forgot-password" element={<ForgotPassword />} />
-<Route path="/reset-password" element={<ResetPassword />} />
-<Route path="/create-account" element={<CreateAccount />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/create-account" element={<CreateAccount />} />
       {/* Protected app shell */}
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
@@ -72,9 +73,11 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <SnackbarProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </SnackbarProvider>
     </BrowserRouter>
   );
 }

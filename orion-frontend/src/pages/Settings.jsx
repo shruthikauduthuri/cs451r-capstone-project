@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../supabaseClient";
+import { useSnackbar } from "../components/Snackbar";
 import "./Settings.css";
 
 export default function Settings() {
   const { user } = useAuth();
+  const { showSnackbar } = useSnackbar();
   const [emailNotif, setEmailNotif] = useState(true);
   const [budgetAlerts, setBudgetAlerts] = useState(true);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saveMsg, setSaveMsg] = useState("");
 
   // Load user metadata on mount
   useEffect(() => {
@@ -23,26 +24,30 @@ export default function Settings() {
 
   async function handleSaveProfile() {
     setSaving(true);
-    setSaveMsg("");
 
     const { error } = await supabase.auth.updateUser({
       data: { first_name: firstName, last_name: lastName },
     });
 
     if (error) {
-      setSaveMsg("Error: " + error.message);
-    } else {
-      // Also update the profiles table username
-      await supabase
-        .from("profiles")
-        .update({ username: firstName + " " + lastName })
-        .eq("id", user.id);
+      showSnackbar(error.message, "error");
+      setSaving(false);
+      return;
+    }
 
-      setSaveMsg("Profile updated!");
+    // Also update the profiles table username
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ username: firstName + " " + lastName })
+      .eq("id", user.id);
+
+    if (profileError) {
+      showSnackbar("Profile saved, but username update failed: " + profileError.message, "warning");
+    } else {
+      showSnackbar("Profile updated!", "success");
     }
 
     setSaving(false);
-    setTimeout(() => setSaveMsg(""), 3000);
   }
 
   return (
@@ -99,15 +104,6 @@ export default function Settings() {
         >
           {saving ? "Saving..." : "Save Changes"}
         </button>
-        {saveMsg && (
-          <p style={{
-            marginTop: 8,
-            fontSize: "0.875rem",
-            color: saveMsg.startsWith("Error") ? "#ef4444" : "#22c55e"
-          }}>
-            {saveMsg}
-          </p>
-        )}
       </article>
 
       <article className="orion-card set-card">

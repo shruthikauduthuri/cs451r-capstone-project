@@ -2,19 +2,19 @@ import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import "./Login.css";
 import { supabase } from "../supabaseClient";
+import { useSnackbar } from "../components/Snackbar";
 
 export default function Login() {
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState(() => searchParams.get("email")?.trim() ?? "");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg("");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -27,10 +27,11 @@ export default function Login() {
     setLoading(false);
 
     if (error) {
-      setErrorMsg(error.message);
+      showSnackbar(error.message, "error");
       return;
     }
 
+    showSnackbar("Welcome back!", "success");
     navigate("/dashboard", { replace: true });
   }
 
@@ -81,8 +82,6 @@ export default function Login() {
                 required
               />
             </div>
-
-            {errorMsg && <p className="login-error">{errorMsg}</p>}
 
             <button type="submit" className="login-submit" disabled={loading}>
               {loading ? "Logging in..." : "Login"}

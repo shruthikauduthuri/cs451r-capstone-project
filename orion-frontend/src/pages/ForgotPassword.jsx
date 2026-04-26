@@ -1,29 +1,30 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
+import { useSnackbar } from "../components/Snackbar";
 import "./Login.css";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const { showSnackbar } = useSnackbar();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    setErrorMsg("");
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + "/reset-password",
     });
 
     if (error) {
-      setErrorMsg(error.message);
+      showSnackbar(error.message, "error");
       setLoading(false);
       return;
     }
 
+    showSnackbar("Reset link sent. Check your email.", "success");
     setSubmitted(true);
     setLoading(false);
   }
@@ -74,10 +75,6 @@ export default function ForgotPassword() {
                   required
                 />
               </div>
-
-              {errorMsg && (
-                <p style={{ color: "#ef4444", fontSize: "0.875rem", margin: "0 0 8px" }}>{errorMsg}</p>
-              )}
 
               <button type="submit" className="login-submit" disabled={loading}>
                 {loading ? "Sending..." : "Send reset link"}
