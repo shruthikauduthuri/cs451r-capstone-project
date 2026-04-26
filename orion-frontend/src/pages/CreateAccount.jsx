@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 import { supabase } from "../supabaseClient";
+import { useSnackbar } from "../components/Snackbar";
 
 export default function CreateAccount() {
   const navigate = useNavigate();
+  const { showSnackbar } = useSnackbar();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -13,8 +15,6 @@ export default function CreateAccount() {
     confirm: "",
   });
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
 
   function onChange(e) {
     const { name, value } = e.target;
@@ -23,11 +23,9 @@ export default function CreateAccount() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setErrorMsg("");
-    setSuccessMsg("");
 
     if (form.password !== form.confirm) {
-      setErrorMsg("Passwords do not match. Please try again.");
+      showSnackbar("Passwords do not match. Please try again.", "error");
       return;
     }
 
@@ -52,16 +50,17 @@ export default function CreateAccount() {
 
     if (error) {
       if (error.message.toLowerCase().includes("rate limit")) {
-        setErrorMsg(
-          "Supabase email sending limit was hit. Wait a while before trying again, or turn off Confirm email in Supabase while testing."
+        showSnackbar(
+          "Supabase email sending limit was hit. Wait a while before trying again, or turn off Confirm email in Supabase while testing.",
+          "error"
         );
       } else {
-        setErrorMsg(error.message);
+        showSnackbar(error.message, "error");
       }
       return;
     }
 
-    setSuccessMsg("Account created successfully! Please check your email for a verification link.");
+    showSnackbar("Account created! Check your email for a verification link.", "success");
 
     navigate(`/login?email=${encodeURIComponent(form.email.trim())}`, {
       replace: false,
@@ -168,9 +167,6 @@ export default function CreateAccount() {
                 minLength={8}
               />
             </div>
-
-            {errorMsg && <p className="login-error">{errorMsg}</p>}
-            {successMsg && <p className="login-success">{successMsg}</p>}
 
             <button type="submit" className="login-submit" disabled={loading}>
               {loading ? "Creating account..." : "Create account"}
