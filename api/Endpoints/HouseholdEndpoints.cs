@@ -35,7 +35,8 @@ namespace api.Endpoints
                 var response = await supabase.From<Household>().Insert(new Household
                 {
                     AdminId = user.Id,
-                    JoinCode = joinCode
+                    JoinCode = joinCode,
+                    Created_at = DateTimeOffset.UtcNow
                 });
 
                 var createdHousehold = response.Models?.FirstOrDefault();
@@ -107,7 +108,7 @@ namespace api.Endpoints
                 // Add user to household
                 await supabase.From<Profile>()
                     .Where(p => p.Id == userProfileId)
-                    .Set(p => p.HouseholdId, householdId)
+                    .Set(p => p.HouseholdId!, householdId)
                     .Set(p => p.Role, "partner")
                     .Update();
 
@@ -219,7 +220,7 @@ namespace api.Endpoints
                 // Add user to household
                 await supabase.From<Profile>()
                     .Where(p => p.Id == targetUserId)
-                    .Set(p => p.HouseholdId, id)
+                    .Set(p => p.HouseholdId!, id)
                     .Set(p => p.Role, "member")
                     .Update();
 
@@ -274,7 +275,7 @@ namespace api.Endpoints
 
                 await supabase.From<Profile>()
                     .Where(p => p.Id == targetUserId)
-                    .Set(p => p.HouseholdId, null)
+                    .Set(p => p.HouseholdId!, null)
                     .Set(p => p.Role, string.Empty)
                     .Update();
 

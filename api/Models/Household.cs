@@ -20,5 +20,7 @@ namespace api.Models
 
         [Column("join_code")]
         public string JoinCode { get; set; } = string.Empty;
+        [Column("created_at")]
+        public DateTimeOffset Created_at { get; set; }
     }
 }

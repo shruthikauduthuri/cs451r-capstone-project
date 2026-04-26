@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Contracts.Goal
+namespace api.Contracts
 {
-    public class CreateGoalResponse
+    public class CreateProfileResponse
     {
         public long Id { get; set; }
         public string UserId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public decimal TargetAmount { get; set; }
-        public decimal CurrentAmount { get; set; }
-        public DateTimeOffset Deadline { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string HouseholdName { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
         public DateTimeOffset Created_at { get; set; }
     }
 }

@@ -4,7 +4,7 @@ using api.Models;
 using Supabase;
 using api.Endpoints;
 using MapAuthEndpoints = api.Endpoints.AuthEndpoints;
-using MapUserEndpoints = api.Endpoints.UserEndpoints;
+using MapProfileEndpoints = api.Endpoints.ProfileEndpoints;
 using MapHouseholdEndpoints = api.Endpoints.HouseholdEndpoints;
 using MapBudgetEndpoints = api.Endpoints.BudgetEndpoints;
 using MapTransactionEndpoints = api.Endpoints.TransactionEndpoints;
@@ -56,12 +56,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
+app.MapAccountEndpoints();
 app.MapAuthEndpoints();
-app.MapUserEndpoints();
-app.MapHouseholdEndpoints();
 app.MapBudgetEndpoints();
-app.MapTransactionEndpoints();
 app.MapGoalEndpoints();
+app.MapHouseholdEndpoints();
+app.MapPrivacyEndpoints();
+app.MapProfileEndpoints();
+app.MapTransactionEndpoints();
 app.MapSharedExpenseEndpoints();
 
 app.UseHttpsRedirection();
