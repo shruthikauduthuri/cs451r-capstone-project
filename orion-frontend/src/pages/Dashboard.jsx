@@ -37,67 +37,6 @@ export default function Dashboard() {
 
   return (
     <div className="dash-page">
-      {/* ============================================================ */}
-      {/* TEMPORARY: Snackbar test panel — DELETE BEFORE SUBMISSION    */}
-      {/* ============================================================ */}
-      <section
-        className="orion-card"
-        style={{
-          marginBottom: 24,
-          padding: 16,
-          background: "#fef3c7",
-          border: "1px dashed #f59e0b",
-        }}
-      >
-        <p style={{ margin: "0 0 10px", fontSize: "0.8125rem", fontWeight: 700, color: "#92400e" }}>
-          🧪 Snackbar Test Panel (temporary — remove before submission)
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          <button
-            type="button"
-            className="btn-outline-light"
-            onClick={() => showSnackbar("Saved successfully", "success")}
-          >
-            Test success
-          </button>
-          <button
-            type="button"
-            className="btn-outline-light"
-            onClick={() => showSnackbar("Something went wrong", "error")}
-          >
-            Test error
-          </button>
-          <button
-            type="button"
-            className="btn-outline-light"
-            onClick={() => showSnackbar("Heads up — check this", "warning")}
-          >
-            Test warning
-          </button>
-          <button
-            type="button"
-            className="btn-outline-light"
-            onClick={() => showSnackbar("Just letting you know", "info")}
-          >
-            Test info
-          </button>
-          <button
-            type="button"
-            className="btn-outline-light"
-            onClick={() => {
-              showSnackbar("First message", "info");
-              setTimeout(() => showSnackbar("Second message", "success"), 200);
-              setTimeout(() => showSnackbar("Third message", "warning"), 400);
-            }}
-          >
-            Test stacking
-          </button>
-        </div>
-      </section>
-      {/* ============================================================ */}
-      {/* END TEMPORARY                                                */}
-      {/* ============================================================ */}
-
       <header className="orion-page-header">
         <div>
           <h1 className="orion-page-title">Dashboard</h1>
