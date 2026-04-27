@@ -144,7 +144,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapPost("/api/accounts/transition", async (Client supabase, ILogger logger) =>
+            app.MapPost("/api/accounts/transition", async (Client supabase, ILogger<Program> logger) =>
             {
                 var user = supabase.Auth.CurrentUser;
                 if (user == null)

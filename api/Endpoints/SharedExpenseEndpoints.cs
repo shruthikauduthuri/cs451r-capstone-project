@@ -14,7 +14,7 @@ namespace api.Endpoints
     {
         public static void MapSharedExpenseEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/shared-expenses", async (Client supabase, ILogger logger) =>
+            app.MapGet("/api/shared-expenses", async (Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving all shared expenses");
                 var response = await supabase.From<SharedExpense>().Get();
@@ -22,7 +22,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models);
             });
 
-            app.MapPost("/api/shared-expenses", async (Client supabase, SharedExpense request, ILogger logger) =>
+            app.MapPost("/api/shared-expenses", async (Client supabase, SharedExpense request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Creating new shared expense");
                 var response = await supabase.From<SharedExpense>().Insert(request);
@@ -30,7 +30,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, long id, SharedExpense request, ILogger logger) =>
+            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, long id, SharedExpense request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating shared expense with ID {Id}", id);
                 await supabase.From<SharedExpense>().Where(se => se.Id == id).Update(request);

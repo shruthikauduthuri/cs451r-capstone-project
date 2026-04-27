@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Contracts
+namespace api.Contracts.Category
 {
     public class CreateCategoryRequest
     {
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
-        public DateTimeOffset Created_at { get; set; }
     }
 }

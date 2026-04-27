@@ -14,7 +14,7 @@ namespace api.Endpoints
     {
         public static void MapBudgetEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/budgets", async (Client supabase, Budget request, ILogger logger) =>
+            app.MapPost("/api/budgets", async (Client supabase, Budget request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Creating new budget");
                 var response = await supabase.From<Budget>().Insert(request);
@@ -22,7 +22,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapGet("/api/budgets", async (Client supabase, ILogger logger) =>
+            app.MapGet("/api/budgets", async (Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving all budgets");
                 var response = await supabase.From<Budget>().Get();
@@ -30,7 +30,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models);
             });
 
-            app.MapGet("/api/budgets/{id}", async (Client supabase, long id, ILogger logger) =>
+            app.MapGet("/api/budgets/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving budget with ID {Id}", id);
                 var response = await supabase.From<Budget>().Where(b => b.Id == id).Get();
@@ -46,7 +46,7 @@ namespace api.Endpoints
                 return Results.Ok(budget);
             });
 
-            app.MapPut("/api/budgets/{id}", async (Client supabase, long id, Budget request, ILogger logger) =>
+            app.MapPut("/api/budgets/{id}", async (Client supabase, long id, Budget request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating budget with ID {Id}", id);
                 await supabase.From<Budget>().Where(b => b.Id == id).Update(request);
@@ -54,7 +54,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/budgets/{id}", async (Client supabase, long id, ILogger logger) =>
+            app.MapDelete("/api/budgets/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting budget with ID {Id}", id);
                 await supabase.From<Budget>().Where(b => b.Id == id).Delete();

@@ -59,6 +59,7 @@ app.UseCors("AllowAll");
 app.MapAccountEndpoints();
 app.MapAuthEndpoints();
 app.MapBudgetEndpoints();
+app.MapCategoryEndpoints();
 app.MapGoalEndpoints();
 app.MapHouseholdEndpoints();
 app.MapPrivacyEndpoints();

@@ -12,7 +12,7 @@ namespace api.Endpoints
     {
         public static void MapProfileEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapGet("/api/profile/me", async (Client supabase, ILogger logger) =>
+            app.MapGet("/api/profile/me", async (Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving current profile information");
                 var user = supabase.Auth.CurrentUser;
@@ -43,7 +43,7 @@ namespace api.Endpoints
                 return Results.Ok(profile);
             });
 
-            app.MapPut("/api/profile/me", async (Client supabase, UpdateProfileRequest request, ILogger logger) =>
+            app.MapPut("/api/profile/me", async (Client supabase, UpdateProfileRequest request, ILogger<Program> logger) =>
             {
                 var user = supabase.Auth.CurrentUser;
                 if (user == null)
@@ -68,7 +68,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapPost("/api/profile/transition", async (Client supabase, ILogger logger) =>
+            app.MapPost("/api/profile/transition", async (Client supabase, ILogger<Program> logger) =>
             {
                 var user = supabase.Auth.CurrentUser;
                 if (user == null)

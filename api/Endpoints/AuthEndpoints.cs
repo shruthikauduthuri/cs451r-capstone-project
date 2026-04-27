@@ -14,7 +14,7 @@ namespace api.Endpoints
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/auth/register", async (Client supabase, RegisterRequest request, ILogger logger) =>
+            app.MapPost("/api/auth/register", async (Client supabase, RegisterRequest request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Registration attempt for {Email}", request.Email);
                 var auth = await supabase.Auth.SignUp(request.Email, request.Password);
@@ -34,7 +34,7 @@ namespace api.Endpoints
                 });
             });
 
-            app.MapPost("/api/auth/login", async (Client supabase, LoginRequest request, ILogger logger) =>
+            app.MapPost("/api/auth/login", async (Client supabase, LoginRequest request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Login attempt for {Email}", request.Email);
 
@@ -55,21 +55,21 @@ namespace api.Endpoints
                 });
             });
 
-            app.MapPost("/api/auth/logout", async (Client supabase, ILogger logger) =>
+            app.MapPost("/api/auth/logout", async (Client supabase, ILogger<Program> logger) =>
             {
                 await supabase.Auth.SignOut();
                 logger.LogInformation("User logged out successfully.");
                 return Results.Ok();
             });
 
-            app.MapPost("/api/auth/reset-password", async (Client supabase, ResetPasswordRequest request, ILogger logger) =>
+            app.MapPost("/api/auth/reset-password", async (Client supabase, ResetPasswordRequest request, ILogger<Program> logger) =>
             {
                 await supabase.Auth.ResetPasswordForEmail(request.Email);
                 logger.LogInformation("Password reset email sent to {Email}", request.Email);
                 return Results.Ok("Password reset email sent.");
             });
 
-            app.MapGet("/api/auth/session", async (Client supabase, ILogger logger) =>
+            app.MapGet("/api/auth/session", async (Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving session for user.");
                 var session = supabase.Auth.CurrentSession;
