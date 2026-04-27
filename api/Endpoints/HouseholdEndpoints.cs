@@ -14,7 +14,7 @@ namespace api.Endpoints
     {
         public static void MapHouseholdEndpoints(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/households", async (Client supabase, ILogger logger) =>
+            app.MapPost("/api/households", async (Client supabase, ILogger<Program> logger) =>
             {
                 var user = supabase.Auth.CurrentUser;
                 if (user == null)
@@ -50,7 +50,7 @@ namespace api.Endpoints
                 return Results.Ok(createdHousehold);
             });
 
-            app.MapPost("/api/households/join", async (Client supabase, JoinHouseholdRequest request, ILogger logger) =>
+            app.MapPost("/api/households/join", async (Client supabase, JoinHouseholdRequest request, ILogger<Program> logger) =>
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.JoinCode))
                 {
@@ -116,7 +116,7 @@ namespace api.Endpoints
                 return Results.Ok(new { household.Id, household.JoinCode });
             });
 
-            app.MapGet("/api/households/{id}/members", async (Client supabase, long id, ILogger logger) =>
+            app.MapGet("/api/households/{id}/members", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving members for household {HouseholdId}", id);
 
@@ -183,7 +183,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger logger) =>
+            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger<Program> logger) =>
             {
                 if (string.IsNullOrWhiteSpace(userId))
                 {
@@ -228,7 +228,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger logger) =>
+            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger<Program> logger) =>
             {
                 if (string.IsNullOrWhiteSpace(userId))
                 {

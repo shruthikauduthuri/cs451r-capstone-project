@@ -18,12 +18,12 @@ namespace api.Models
         public string UserId { get; set; } = string.Empty;
 
         [Column("rule_type")]
-        public string RuleType { get; set; } = string.Empty; // e.g., "hide_income", "share_expenses"
+        public string RuleType { get; set; } = string.Empty; // e.g., "hide_income", "hide_from_children", "hide_from_roommates", "admin_only"
 
         [Column("value")]
         public string Value { get; set; } = string.Empty;
 
         [Column("created_at")]
-        public DateTimeOffset CreatedAt { get; set; }
+        public DateTimeOffset Created_at { get; set; }
     }
 }

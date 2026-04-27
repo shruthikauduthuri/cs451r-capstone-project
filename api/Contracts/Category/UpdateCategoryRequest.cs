@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Contracts.Account
+namespace api.Contracts.Category
 {
-    public class UpdateAccountRequest
+    public class UpdateCategoryRequest
     {
+        public long Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
-        public decimal Balance { get; set; }
     }
 }

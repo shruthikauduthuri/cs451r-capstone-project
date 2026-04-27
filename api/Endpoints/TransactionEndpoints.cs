@@ -14,7 +14,7 @@ namespace api.Endpoints
     {
         public static void MapTransactionEndpoints(this WebApplication app)
         {
-            app.MapPost("/api/transactions", async (Client supabase, Transaction request, ILogger logger) =>
+            app.MapPost("/api/transactions", async (Client supabase, Transaction request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Creating new transaction");
                 var response = await supabase.From<Transaction>().Insert(request);
@@ -22,7 +22,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapGet("/api/transactions", async (Client supabase, ILogger logger) =>
+            app.MapGet("/api/transactions", async (Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving all transactions");
                 var response = await supabase.From<Transaction>().Get();
@@ -30,7 +30,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models);
             });
 
-            app.MapGet("/api/transactions/{id}", async (Client supabase, long id, ILogger logger) =>
+            app.MapGet("/api/transactions/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving transaction with ID {Id}", id);
                 var response = await supabase.From<Transaction>().Where(t => t.Id == id).Get();
@@ -46,7 +46,7 @@ namespace api.Endpoints
                 return Results.Ok(transaction);
             });
 
-            app.MapPut("/api/transactions/{id}", async (Client supabase, long id, Transaction request, ILogger logger) =>
+            app.MapPut("/api/transactions/{id}", async (Client supabase, long id, Transaction request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating transaction with ID {Id}", id);
                 await supabase.From<Transaction>().Where(t => t.Id == id).Update(request);
@@ -54,7 +54,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/transactions/{id}", async (Client supabase, long id, ILogger logger) =>
+            app.MapDelete("/api/transactions/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting transaction with ID {Id}", id);
                 await supabase.From<Transaction>().Where(t => t.Id == id).Delete();
