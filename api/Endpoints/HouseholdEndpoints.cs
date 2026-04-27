@@ -116,7 +116,7 @@ namespace api.Endpoints
                 return Results.Ok(new { household.Id, household.JoinCode });
             });
 
-            app.MapGet("/api/households/{id}/members", async (Client supabase, string id, ILogger<Program> logger) =>
+            app.MapGet("/api/households/{id}/members", async (Client supabase, long id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving members for household {HouseholdId}", id);
 

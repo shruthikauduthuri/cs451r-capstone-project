@@ -9,8 +9,8 @@ namespace api.Contracts
     {
         public long Id { get; set; }
         public string UserId { get; set; } = string.Empty;
-        public long AccountId { get; set; }
-        public long CategoryId { get; set; }
+        public string AccountId { get; set; }
+        public string CategoryId { get; set; }
         public decimal Amount { get; set; }
         public string Description { get; set; } = string.Empty;
         public DateTimeOffset Created_at { get; set; }

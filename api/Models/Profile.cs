@@ -18,7 +18,7 @@ namespace api.Models
         public string UserName { get; set; } = string.Empty;
 
         [Column("household_id")]
-        public string HouseholdId { get; set; } = string.Empty;
+        public long? HouseholdId { get; set; }
 
         [Column("role")]
         public string Role { get; set; } = string.Empty;
