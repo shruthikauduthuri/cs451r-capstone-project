@@ -1,135 +1,227 @@
-import { describe, test, expect, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+// tests for the useOrionStore hook (API-backed version)
+// now that transactions and goals go through the API, we mock apiTransactions
+// and apiGoals to avoid real network calls during tests
+
+import { describe, test, expect, beforeEach, vi } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useOrionStore } from "./useOrionStore";
 
+// mock the API module
+vi.mock("../services/api", () => ({
+	apiTransactions: {
+		list: vi.fn(),
+		create: vi.fn(),
+		update: vi.fn(),
+		remove: vi.fn(),
+	},
+	apiGoals: {
+		list: vi.fn(),
+		create: vi.fn(),
+		update: vi.fn(),
+		remove: vi.fn(),
+	},
+}));
+
+import { apiTransactions, apiGoals } from "../services/api";
+
 beforeEach(() => {
-    global.localStorage = {
-      store: {},
-      getItem(key) {
-        return this.store[key] || null;
-      },
-      setItem(key, value) {
-        this.store[key] = String(value);
-      },
-      removeItem(key) {
-        delete this.store[key];
-      },
-      clear() {
-        this.store = {};
-      },
-    };
-  });
+	// reset localStorage and all mocks before each test
+	global.localStorage = {
+		store: {},
+		getItem(key) {
+			return this.store[key] || null;
+		},
+		setItem(key, value) {
+			this.store[key] = String(value);
+		},
+		removeItem(key) {
+			delete this.store[key];
+		},
+		clear() {
+			this.store = {};
+		},
+	};
+
+	vi.clearAllMocks();
+
+	// default mock responses: empty arrays so the hook doesn't hang waiting for API
+	apiTransactions.list.mockResolvedValue([]);
+	apiGoals.list.mockResolvedValue([]);
+});
 
 describe("useOrionStore", () => {
-  test("starts with the default categories", () => {
-    const { result } = renderHook(() => useOrionStore());
-    expect(result.current.categories.length).toBeGreaterThan(0);
-    expect(result.current.categories).toContain("Groceries");
-  });
+	test("starts with the default categories", async () => {
+		const { result } = renderHook(() => useOrionStore());
 
-  test("adds a new category", () => {
-    const { result } = renderHook(() => useOrionStore());
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
 
-    act(() => {
-      result.current.addCategory("Medical");
-    });
+		expect(result.current.categories.length).toBeGreaterThan(0);
+		expect(result.current.categories).toContain("Groceries");
+	});
 
-    expect(result.current.categories).toContain("Medical");
-  });
+	test("adds a new category", async () => {
+		const { result } = renderHook(() => useOrionStore());
 
-  test("rejects duplicate categories case-insensitively", () => {
-    const { result } = renderHook(() => useOrionStore());
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
 
-    let response;
-    act(() => {
-      response = result.current.addCategory("groceries");
-    });
+		act(() => {
+			result.current.addCategory("Medical");
+		});
 
-    expect(response.ok).toBe(false);
-    expect(response.message).toMatch(/already exists/i);
-  });
+		expect(result.current.categories).toContain("Medical");
+	});
 
-  test("removes a category and reassigns its transactions to Other", () => {
-    const { result } = renderHook(() => useOrionStore());
+	test("rejects duplicate categories case-insensitively", async () => {
+		const { result } = renderHook(() => useOrionStore());
 
-    act(() => {
-      result.current.addTransaction({
-        id: "tx1",
-        type: "expense",
-        amount: 50,
-        category: "Groceries",
-        date: "2026-04-01",
-      });
-    });
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
 
-    act(() => {
-      result.current.removeCategory("Groceries");
-    });
+		let response;
+		act(() => {
+			response = result.current.addCategory("groceries");
+		});
 
-    expect(result.current.categories).not.toContain("Groceries");
-    const tx = result.current.transactions.find((t) => t.id === "tx1");
-    expect(tx.category).toBe("Other");
-  });
+		expect(response.ok).toBe(false);
+		expect(response.message).toMatch(/already exists/i);
+	});
 
-  test("adds and removes a transaction", () => {
-    const { result } = renderHook(() => useOrionStore());
+	test("removes a category and reassigns its transactions to Other", async () => {
+		// mock the API to return a transaction with category "Groceries"
+		apiTransactions.list.mockResolvedValue([
+			{
+				Id: "tx1",
+				Type: "expense",
+				Amount: 50,
+				Category: "Groceries",
+				TransactionDate: "2026-04-01",
+			},
+		]);
 
-    act(() => {
-      result.current.addTransaction({
-        id: "tx1",
-        type: "expense",
-        amount: 25,
-        category: "Dining",
-        date: "2026-04-15",
-      });
-    });
+		const { result } = renderHook(() => useOrionStore());
 
-    expect(result.current.transactions).toHaveLength(1);
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
 
-    act(() => {
-      result.current.removeTransaction("tx1");
-    });
+		act(() => {
+			result.current.removeCategory("Groceries");
+		});
 
-    expect(result.current.transactions).toHaveLength(0);
-  });
+		expect(result.current.categories).not.toContain("Groceries");
+		const tx = result.current.transactions.find((t) => t.id === "tx1");
+		expect(tx.category).toBe("Other");
+	});
 
-  test("contributeToGoal increases the goal's currentAmount", () => {
-    const { result } = renderHook(() => useOrionStore());
+	test("adds and removes a transaction", async () => {
+		apiTransactions.create.mockResolvedValue({
+			Id: "tx1",
+			Type: "expense",
+			Amount: 25,
+			Category: "Dining",
+			TransactionDate: "2026-04-15",
+		});
 
-    act(() => {
-      result.current.addGoal({
-        id: "g1",
-        name: "Vacation",
-        targetAmount: 1000,
-        currentAmount: 0,
-      });
-    });
+		const { result } = renderHook(() => useOrionStore());
 
-    act(() => {
-      result.current.contributeToGoal("g1", 250);
-    });
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
 
-    const goal = result.current.goals.find((g) => g.id === "g1");
-    expect(goal.currentAmount).toBe(250);
-  });
+		await act(async () => {
+			await result.current.addTransaction({
+				id: "tx1",
+				type: "expense",
+				amount: 25,
+				category: "Dining",
+				date: "2026-04-15",
+			});
+		});
 
-  test("contributeToGoal ignores zero or negative amounts", () => {
-    const { result } = renderHook(() => useOrionStore());
+		expect(result.current.transactions).toHaveLength(1);
 
-    act(() => {
-      result.current.addGoal({
-        id: "g1",
-        name: "Vacation",
-        targetAmount: 1000,
-        currentAmount: 100,
-      });
-    });
+		apiTransactions.remove.mockResolvedValue({});
 
-    act(() => {
-      result.current.contributeToGoal("g1", -50);
-    });
+		await act(async () => {
+			await result.current.removeTransaction("tx1");
+		});
 
-    const goal = result.current.goals.find((g) => g.id === "g1");
-    expect(goal.currentAmount).toBe(100);
-  });
+		expect(result.current.transactions).toHaveLength(0);
+	});
+
+	test("contributeToGoal increases the goal's currentAmount", async () => {
+		const mockGoal = {
+			Id: "g1",
+			Name: "Vacation",
+			TargetAmount: 1000,
+			CurrentAmount: 0,
+			Deadline: "2026-12-31",
+		};
+
+		apiGoals.create.mockResolvedValue(mockGoal);
+		apiGoals.update.mockResolvedValue({});
+
+		const { result } = renderHook(() => useOrionStore());
+
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
+
+		await act(async () => {
+			await result.current.addGoal({
+				id: "g1",
+				name: "Vacation",
+				targetAmount: 1000,
+				currentAmount: 0,
+				deadline: "2026-12-31",
+			});
+		});
+
+		await act(async () => {
+			await result.current.contributeToGoal("g1", 250);
+		});
+
+		const goal = result.current.goals.find((g) => g.id === "g1");
+		expect(goal.currentAmount).toBe(250);
+	});
+
+	test("contributeToGoal ignores zero or negative amounts", async () => {
+		const mockGoal = {
+			Id: "g1",
+			Name: "Vacation",
+			TargetAmount: 1000,
+			CurrentAmount: 100,
+			Deadline: "2026-12-31",
+		};
+
+		apiGoals.create.mockResolvedValue(mockGoal);
+
+		const { result } = renderHook(() => useOrionStore());
+
+		await waitFor(() => {
+			expect(result.current.loading).toBe(false);
+		});
+
+		await act(async () => {
+			await result.current.addGoal({
+				id: "g1",
+				name: "Vacation",
+				targetAmount: 1000,
+				currentAmount: 100,
+				deadline: "2026-12-31",
+			});
+		});
+
+		await act(async () => {
+			await result.current.contributeToGoal("g1", -50);
+		});
+
+		const goal = result.current.goals.find((g) => g.id === "g1");
+		expect(goal.currentAmount).toBe(100);
+	});
 });
