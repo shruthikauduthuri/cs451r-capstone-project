@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SnackbarProvider } from "./components/Snackbar";
 import MainLayout from "./layout/MainLayout";
-
 import Dashboard from "./pages/Dashboard";
 import Transactions from "./pages/Transactions";
 import Categories from "./pages/Categories";
@@ -14,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import CreateAccount from "./pages/CreateAccount";
 import AskAI from "./pages/AskAI";
 import ResetPassword from "./pages/ResetPassword";
+import NotFound from "./pages/NotFound";
 
 function ProtectedRoute() {
   const { session, loading } = useAuth();
@@ -64,6 +64,7 @@ function AppRoutes() {
           <Route path="/household" element={<Household />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/ask-ai" element={<AskAI />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
     </Routes>
