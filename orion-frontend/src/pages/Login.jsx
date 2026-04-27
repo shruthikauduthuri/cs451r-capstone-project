@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import "./Login.css";
-import { supabase } from "../supabaseClient";
+import { apiAuth, applySession } from "../services/api";
 import { useSnackbar } from "../components/Snackbar";
 
 export default function Login() {
@@ -16,23 +16,28 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { token } = await apiAuth.login({ email, password });
 
-    console.log("LOGIN DATA:", data);
-    console.log("LOGIN ERROR:", error);
+      if (!token) {
+        showSnackbar("Login failed. Please check your credentials.", "error");
+        return;
+      }
 
-    setLoading(false);
+      await applySession(token);
 
-    if (error) {
-      showSnackbar(error.message, "error");
-      return;
+      showSnackbar("Welcome back!", "success");
+      navigate("/dashboard", { replace: true });
+    } catch (err) {
+      console.error("LOGIN ERROR:", err);
+      const message =
+        err.status === 401
+          ? "Invalid email or password."
+          : err.message || "Login failed. Please try again.";
+      showSnackbar(message, "error");
+    } finally {
+      setLoading(false);
     }
-
-    showSnackbar("Welcome back!", "success");
-    navigate("/dashboard", { replace: true });
   }
 
   return (
