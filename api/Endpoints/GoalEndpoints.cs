@@ -30,7 +30,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models);
             });
 
-            app.MapGet("/api/goals/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapGet("/api/goals/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving goal with ID {Id}", id);
                 var response = await supabase.From<Goal>().Where(g => g.Id == id).Get();
@@ -46,7 +46,7 @@ namespace api.Endpoints
                 return Results.Ok(goal);
             });
 
-            app.MapPut("/api/goals/{id}", async (Client supabase, long id, Goal request, ILogger<Program> logger) =>
+            app.MapPut("/api/goals/{id}", async (Client supabase, string id, Goal request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating goal with ID {Id}", id);
                 await supabase.From<Goal>().Where(g => g.Id == id).Update(request);
@@ -54,7 +54,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/goals/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapDelete("/api/goals/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting goal with ID {Id}", id);
                 await supabase.From<Goal>().Where(g => g.Id == id).Delete();

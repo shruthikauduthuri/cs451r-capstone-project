@@ -39,7 +39,7 @@ namespace api.Endpoints
 
                 var newProfile = new Profile
                 {
-                    Id = long.Parse(auth.User.Id!),
+                    Id = auth.User.Id!,
                     UserName = auth.User.Email!,
                     Created_at = DateTime.UtcNow
                 };

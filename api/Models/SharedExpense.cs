@@ -13,10 +13,10 @@ namespace api.Models
     public class SharedExpense : BaseModel
     {
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
-        public long Household_id { get; set; }
-        public long Created_by { get; set; }
+        public string Household_id { get; set; } = string.Empty;
+        public string Created_by { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string Split_type { get; set; } = string.Empty;

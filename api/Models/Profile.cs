@@ -12,13 +12,13 @@ namespace api.Models
     public class Profile : BaseModel
     {
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [Column("name")]
         public string UserName { get; set; } = string.Empty;
 
         [Column("household_id")]
-        public long? HouseholdId { get; set; }
+        public string HouseholdId { get; set; } = string.Empty;
 
         [Column("role")]
         public string Role { get; set; } = string.Empty;

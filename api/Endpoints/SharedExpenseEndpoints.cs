@@ -30,7 +30,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, long id, SharedExpense request, ILogger<Program> logger) =>
+            app.MapPut("/api/shared-expenses/{id}", async (Client supabase, string id, SharedExpense request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating shared expense with ID {Id}", id);
                 await supabase.From<SharedExpense>().Where(se => se.Id == id).Update(request);

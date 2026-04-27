@@ -21,7 +21,7 @@ namespace api.Endpoints
                 return Results.Ok(categories.Models);
             });
 
-            app.MapGet("api/categories/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapGet("api/categories/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 var category = await supabase.From<Category>().Where(c => c.Id == id).Get();
                 return Results.Ok(category.Models.FirstOrDefault());
@@ -51,27 +51,27 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-            app.MapPut("api/categories/{id}", async (Client supabase, UpdateCategoryRequest request, ILogger<Program> logger) =>
+            app.MapPut("api/categories/{id}", async (Client supabase, string id, UpdateCategoryRequest request, ILogger<Program> logger) =>
             {
-                logger.LogInformation("Updating category with ID {Id}", request.Id);
+                logger.LogInformation("Updating category with ID {Id}", id);
                 if(string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Type))
                 {
-                    logger.LogWarning("Invalid category update request for ID {Id}", request.Id);
+                    logger.LogWarning("Invalid category update request for ID {Id}", id);
                     return Results.BadRequest("Name and Type are required fields.");
                 }
 
                 var categoryToUpdate = new Category
                 {
-                    Id = request.Id,
+                    Id = id,
                     Name = request.Name,
                     Type = request.Type,
                     Created_at = DateTimeOffset.UtcNow
                 };
-                await supabase.From<Category>().Where(c => c.Id == request.Id).Update(categoryToUpdate);
+                await supabase.From<Category>().Where(c => c.Id == id).Update(categoryToUpdate);
                 return Results.Ok();
             });
             
-            app.MapDelete("api/categories/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapDelete("api/categories/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting category with ID {Id}", id);
                 await supabase.From<Category>().Where(c => c.Id == id).Delete();

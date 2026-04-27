@@ -14,7 +14,7 @@ namespace api.Models
     {
         // This is the budget id, not the user id or profile id
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         // This is the user id of the user who created the budget, not the profile id
         [Column("user_id")]

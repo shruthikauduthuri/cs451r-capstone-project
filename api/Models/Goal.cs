@@ -13,7 +13,7 @@ namespace api.Models
     public class Goal : BaseModel
     {
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [Column("user_id")]
         public string UserId { get; set; } = string.Empty;
