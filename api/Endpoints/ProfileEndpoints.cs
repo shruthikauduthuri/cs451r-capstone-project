@@ -61,7 +61,7 @@ namespace api.Endpoints
                 logger.LogInformation("Updating profile information for {UserId}", user.Id);
                 await supabase.From<Profile>()
                     .Where(p => p.Id == userProfileId)
-                    .Set(p => p.Name, request.DisplayName)
+                    .Set(p => p.UserName, request.DisplayName)
                     .Update();
 
                 logger.LogInformation("Profile information updated for {UserId}", user.Id);

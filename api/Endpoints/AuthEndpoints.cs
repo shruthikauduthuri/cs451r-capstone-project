@@ -27,6 +27,14 @@ namespace api.Endpoints
 
                 logger.LogInformation("Registration successful for user {UserId}", auth.User.Id);
 
+                var newProfile = new Profile
+                {
+                    Id = long.Parse(auth.User.Id),
+                    UserName = auth.User.Email,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+
                 return Results.Ok(new
                 {
                     Token = auth.AccessToken,
