@@ -65,7 +65,7 @@ namespace api.Endpoints
                     return Results.Unauthorized();
                 }
 
-                if (string.IsNullOrWhiteSpace(user.Id) || !long.TryParse(user.Id, out var userProfileId))
+                if (string.IsNullOrWhiteSpace(user.Id))
                 {
                     logger.LogWarning("Invalid authenticated user ID while joining household");
                     return Results.BadRequest("Invalid user ID");
@@ -89,7 +89,7 @@ namespace api.Endpoints
 
                 // Check if user is already a member
                 var existingProfile = await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Get();
 
                 var profile = existingProfile.Models?.FirstOrDefault();
@@ -107,7 +107,7 @@ namespace api.Endpoints
 
                 // Add user to household
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Set(p => p.HouseholdId!, householdId)
                     .Set(p => p.Role, "partner")
                     .Update();
@@ -116,7 +116,7 @@ namespace api.Endpoints
                 return Results.Ok(new { household.Id, household.JoinCode });
             });
 
-            app.MapGet("/api/households/{id}/members", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapGet("/api/households/{id}/members", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving members for household {HouseholdId}", id);
 
@@ -129,7 +129,7 @@ namespace api.Endpoints
                 return Results.Ok(members);
             });
 
-            app.MapPut("/api/households/{id}", async (Client supabase, long id, HouseholdUpdateRequest request, ILogger logger) =>
+            app.MapPut("/api/households/{id}", async (Client supabase, string id, HouseholdUpdateRequest request, ILogger logger) =>
             {
                 if (request == null)
                 {
@@ -183,18 +183,18 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger<Program> logger) =>
+            app.MapPut("/api/households/{id}/members/{userId}", async (Client supabase, string id, string userId, ILogger<Program> logger) =>
             {
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    logger.LogWarning("Invalid path parameter for household {HouseholdId}", id);
+                    return Results.BadRequest("HouseholdId is required");
+                }
+
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     logger.LogWarning("Invalid userId path parameter for household {HouseholdId}", id);
                     return Results.BadRequest("UserId is required");
-                }
-
-                if (!long.TryParse(userId, out var targetUserId))
-                {
-                    logger.LogWarning("Invalid userId value {UserId} for household {HouseholdId}", userId, id);
-                    return Results.BadRequest("UserId must be a numeric value");
                 }
 
                 var currentUser = supabase.Auth.CurrentUser;
@@ -219,7 +219,7 @@ namespace api.Endpoints
 
                 // Add user to household
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == targetUserId)
+                    .Where(p => p.Id == userId)
                     .Set(p => p.HouseholdId!, id)
                     .Set(p => p.Role, "member")
                     .Update();
@@ -228,19 +228,20 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, long id, string userId, ILogger<Program> logger) =>
+            app.MapDelete("/api/households/{id}/members/{userId}", async (Client supabase, string id, string userId, ILogger<Program> logger) =>
             {
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    logger.LogWarning("Invalid householdId value {HouseholdId}", id);
+                    return Results.BadRequest("HouseholdId is required");
+                }
+
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     logger.LogWarning("Invalid userId path parameter for household {HouseholdId}", id);
                     return Results.BadRequest("UserId is required");
                 }
 
-                if (!long.TryParse(userId, out var targetUserId))
-                {
-                    logger.LogWarning("Invalid userId value {UserId} for household {HouseholdId}", userId, id);
-                    return Results.BadRequest("UserId must be a numeric value");
-                }
 
                 var currentUser = supabase.Auth.CurrentUser;
                 if (currentUser == null)
@@ -264,7 +265,7 @@ namespace api.Endpoints
 
                 // Remove user from household
                 var memberProfileResponse = await supabase.From<Profile>()
-                    .Where(p => p.Id == targetUserId)
+                    .Where(p => p.Id == userId)
                     .Get();
 
                 if (memberProfileResponse.Models?.Any() != true)
@@ -274,7 +275,7 @@ namespace api.Endpoints
                 }
 
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == targetUserId)
+                    .Where(p => p.Id == userId)
                     .Set(p => p.HouseholdId!, null)
                     .Set(p => p.Role, string.Empty)
                     .Update();

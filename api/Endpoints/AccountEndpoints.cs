@@ -58,7 +58,7 @@ namespace api.Endpoints
                 return Results.Created($"/api/accounts/{newAccount.Id}", newAccount);
             });
 
-            app.MapGet("/api/accounts/{id}", async (long id, Client supabase, ILogger<Program> logger) =>
+            app.MapGet("/api/accounts/{id}", async (string id, Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Retrieving account {AccountId}", id);
                 var user = supabase.Auth.CurrentUser;
@@ -83,13 +83,13 @@ namespace api.Endpoints
                 return Results.Ok(account);
             });
 
-            app.MapPut("/api/accounts/{id}", async (long id, Client supabase, UpdateAccountRequest request, ILogger<Program> logger) =>
+            app.MapPut("/api/accounts/{id}", async (string id, Client supabase, UpdateAccountRequest request, ILogger<Program> logger) =>
             {
-                logger.LogInformation("Updating account {AccountId}", id);
+                logger.LogInformation("Updating account {AccountId}", request.Id);
                 var user = supabase.Auth.CurrentUser;
                 if (user == null)
                 {
-                    logger.LogWarning("Unauthorized attempt to update account {AccountId}", id);
+                    logger.LogWarning("Unauthorized attempt to update account {AccountId}", request.Id);
                     return Results.Unauthorized();
                 }
 
@@ -100,22 +100,22 @@ namespace api.Endpoints
                 var account = accountResponse.Models?.FirstOrDefault();
                 if (account == null)
                 {
-                    logger.LogWarning("Account {AccountId} not found for user {UserId}", id, user.Id);
+                    logger.LogWarning("Account {AccountId} not found for user {UserId}", request.Id, user.Id);
                     return Results.NotFound("Account not found");
                 }
 
                 await supabase.From<Account>()
-                    .Where(a => a.Id == id)
+                    .Where(a => a.Id == request.Id)
                     .Set(a => a.Name, request.Name)
                     .Set(a => a.Type, request.Type)
                     .Set(a => a.Balance, request.Balance)
                     .Update();
 
-                logger.LogInformation("Account {AccountId} updated for user {UserId}", id, user.Id);
+                logger.LogInformation("Account {AccountId} updated for user {UserId}", request.Id, user.Id);
                 return Results.Ok();
             });
 
-            app.MapDelete("/api/accounts/{id}", async (long id, Client supabase, ILogger<Program> logger) =>
+            app.MapDelete("/api/accounts/{id}", async (string id, Client supabase, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting account {AccountId}", id);
                 var user = supabase.Auth.CurrentUser;
@@ -153,7 +153,7 @@ namespace api.Endpoints
                     return Results.Unauthorized();
                 }
 
-                if (string.IsNullOrWhiteSpace(user.Id) || !long.TryParse(user.Id, out var userProfileId))
+                if (string.IsNullOrWhiteSpace(user.Id))
                 {
                     logger.LogWarning("Invalid authenticated user ID while transitioning account");
                     return Results.BadRequest("Invalid user ID");
@@ -163,7 +163,7 @@ namespace api.Endpoints
 
                 // Get current profile
                 var profileResponse = await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Get();
 
                 var profile = profileResponse.Models?.FirstOrDefault();
@@ -182,7 +182,7 @@ namespace api.Endpoints
 
                 // Remove account from household
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Set(p => p.HouseholdId!, null)
                     .Set(p => p.Role, "")
                     .Update();

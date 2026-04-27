@@ -13,7 +13,7 @@ namespace api.Models
     public class Household : BaseModel
     {
         [PrimaryKey("id", false)]
-        public long Id { get; set; }
+        public string Id { get; set; } = string.Empty;
 
         [Column("admin_id")]
         public string AdminId { get; set; } = string.Empty;

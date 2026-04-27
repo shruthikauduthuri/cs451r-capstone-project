@@ -21,7 +21,7 @@ namespace api.Endpoints
                 return Results.Ok(privacyPolicy);
             });
             
-            app.MapGet("api/privacy/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+            app.MapGet("api/privacy/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Accessing privacy policy with ID {Id}", id);
                 var privacyPolicy = await supabase.From<PrivacyRule>().Where(p => p.Id == id).Get();
@@ -49,7 +49,7 @@ namespace api.Endpoints
                 return Results.Ok(response.Models.First());
             });
 
-             app.MapPut("api/privacy/{id}", async (Client supabase, long id, PrivacyRule request, ILogger<Program> logger) =>
+             app.MapPut("api/privacy/{id}", async (Client supabase, string id, PrivacyRule request, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Updating privacy policy with ID {Id}", id);
                 await supabase.From<PrivacyRule>().Where(p => p.Id == id).Update(request);
@@ -57,7 +57,7 @@ namespace api.Endpoints
                 return Results.Ok();
             });
 
-             app.MapDelete("api/privacy/{id}", async (Client supabase, long id, ILogger<Program> logger) =>
+             app.MapDelete("api/privacy/{id}", async (Client supabase, string id, ILogger<Program> logger) =>
             {
                 logger.LogInformation("Deleting privacy policy with ID {Id}", id);
                 await supabase.From<PrivacyRule>().Where(p => p.Id == id).Delete();

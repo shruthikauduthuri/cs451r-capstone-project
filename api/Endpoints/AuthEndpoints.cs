@@ -24,8 +24,28 @@ namespace api.Endpoints
                     logger.LogWarning("Registration failed for {Email}", request.Email);
                     return Results.BadRequest("Registration failed");
                 }
+                if (string.IsNullOrWhiteSpace(auth.User.Id) || !long.TryParse(auth.User.Id, out var userProfileId))
+                {
+                    logger.LogWarning("Invalid user ID returned from registration for {Email}", request.Email);
+                    return Results.BadRequest("Invalid user ID");
+                }
+                if(string.IsNullOrWhiteSpace(request.Email))
+                {
+                    logger.LogWarning("Email is required for registration for {Email}", request.Email);
+                    return Results.BadRequest("Email is required");
+                }
 
                 logger.LogInformation("Registration successful for user {UserId}", auth.User.Id);
+
+                var newProfile = new Profile
+                {
+                    Id = auth.User.Id!,
+                    UserName = auth.User.Email!,
+                    Created_at = DateTime.UtcNow
+                };
+
+                var profileResponse = await supabase.From<Profile>()
+                    .Insert(newProfile);
 
                 return Results.Ok(new
                 {

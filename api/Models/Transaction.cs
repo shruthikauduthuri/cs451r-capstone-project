@@ -19,13 +19,13 @@ namespace api.Models
         public string UserId { get; set; } = string.Empty;
 
         [Column("household_id")]
-        public string HouseholdId { get; set; }
+        public string HouseholdId { get; set; } = string.Empty;
 
         [Column("account_id")]
-        public string AccountId { get; set; }
+        public string AccountId { get; set; } = string.Empty;
 
         [Column("category_id")]
-        public string CategoryId { get; set; }
+        public string CategoryId { get; set; } = string.Empty;
 
         [Column("amount")]
         public decimal Amount { get; set; }
@@ -34,7 +34,7 @@ namespace api.Models
         public string Type { get; set; } = string.Empty; // "income" or "expense"
 
         [Column("description")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Column("transaction_date")]
         public DateOnly TransactionDate { get; set; }

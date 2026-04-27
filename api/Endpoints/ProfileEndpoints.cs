@@ -29,7 +29,7 @@ namespace api.Endpoints
                 }
 
                 var profileResponse = await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Get();
 
                 var profile = profileResponse.Models?.FirstOrDefault();
@@ -52,7 +52,7 @@ namespace api.Endpoints
                     return Results.Unauthorized();
                 }
 
-                if (string.IsNullOrWhiteSpace(user.Id) || !long.TryParse(user.Id, out var userProfileId))
+                if (string.IsNullOrWhiteSpace(user.Id))
                 {
                     logger.LogWarning("Invalid authenticated user ID while updating profile");
                     return Results.BadRequest("Invalid user ID");
@@ -60,8 +60,8 @@ namespace api.Endpoints
 
                 logger.LogInformation("Updating profile information for {UserId}", user.Id);
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
-                    .Set(p => p.Name, request.DisplayName)
+                    .Where(p => p.Id == user.Id)
+                    .Set(p => p.UserName, request.DisplayName)
                     .Update();
 
                 logger.LogInformation("Profile information updated for {UserId}", user.Id);
@@ -77,7 +77,7 @@ namespace api.Endpoints
                     return Results.Unauthorized();
                 }
 
-                if (string.IsNullOrWhiteSpace(user.Id) || !long.TryParse(user.Id, out var userProfileId))
+                if (string.IsNullOrWhiteSpace(user.Id))
                 {
                     logger.LogWarning("Invalid authenticated user ID while transitioning profile");
                     return Results.BadRequest("Invalid user ID");
@@ -86,7 +86,7 @@ namespace api.Endpoints
                 logger.LogInformation("Transitioning profile {UserId}", user.Id);
 
                 var profileResponse = await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Get();
 
                 var profile = profileResponse.Models?.FirstOrDefault();
@@ -103,7 +103,7 @@ namespace api.Endpoints
                 }
 
                 await supabase.From<Profile>()
-                    .Where(p => p.Id == userProfileId)
+                    .Where(p => p.Id == user.Id)
                     .Set(p => p.HouseholdId!, null)
                     .Set(p => p.Role, string.Empty)
                     .Update();
