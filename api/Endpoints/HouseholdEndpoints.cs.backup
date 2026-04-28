@@ -114,7 +114,7 @@ namespace api.Endpoints
                 return Results.Ok(members);
             });
 
-            app.MapPut("/api/households/{id}", async (Client supabase, string id, HouseholdUpdateRequest request) =>
+            app.MapPut("/api/households/{id}", async (Client supabase, string id, HouseholdUpdateRequest request, ILogger logger) =>
             {
                 if (request == null)
                 {
