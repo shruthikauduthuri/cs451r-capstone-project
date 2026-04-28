@@ -1,71 +1,95 @@
 using api.Endpoints;
 using Supabase;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog for file logging
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "logs/api-.log",
+        rollingInterval: RollingInterval.Day,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
+    )
+    .CreateLogger();
 
-// Logging (without problematic filters)
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.AddDebug();
-builder.Logging.AddConfiguration(builder.Configuration.GetSection("Logging"));
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Add CORS
-builder.Services.AddCors(options =>
+try
 {
-    options.AddPolicy("AllowAll", policy =>
+    Log.Information("Starting Orion API");
+
+    var builder = WebApplication.CreateBuilder(args);
+
+    // Use Serilog for logging
+    builder.Host.UseSerilog();
+
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+
+    // Add CORS
+    builder.Services.AddCors(options =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
     });
-});
 
-// Register Supabase client
-builder.Services.AddScoped<Client>(sp => 
-{
-    var options = new SupabaseOptions
+    // Register Supabase client
+    builder.Services.AddScoped<Client>(sp => 
     {
-        AutoConnectRealtime = false,
-        AutoRefreshToken = false
-    };
-    
-    return new Client(
-        builder.Configuration["Supabase:Url"]!,
-        builder.Configuration["Supabase:Key"]!,
-        options
-    );
-});
+        var options = new SupabaseOptions
+        {
+            AutoConnectRealtime = false,
+            AutoRefreshToken = false
+        };
+        
+        return new Client(
+            builder.Configuration["Supabase:Url"]!,
+            builder.Configuration["Supabase:Key"]!,
+            options
+        );
+    });
 
-// Explicitly add logging services
-builder.Services.AddLogging();
+    var app = builder.Build();
 
-var app = builder.Build();
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    // Add Serilog request logging
+    app.UseSerilogRequestLogging();
+
+    app.UseCors("AllowAll");
+
+    app.MapAccountEndpoints();
+    app.MapAuthEndpoints();
+    app.MapBudgetEndpoints();
+    app.MapCategoryEndpoints();
+    app.MapGoalEndpoints();
+    app.MapHouseholdEndpoints();
+    app.MapPrivacyEndpoints();
+    app.MapProfileEndpoints();
+    app.MapTransactionEndpoints();
+    app.MapSharedExpenseEndpoints();
+
+    app.UseHttpsRedirection();
+
+    Log.Information("API starting on http://localhost:5043");
+
+    app.Run("http://localhost:5043");
 }
-
-app.UseCors("AllowAll");
-
-app.MapAccountEndpoints();
-app.MapAuthEndpoints();
-app.MapBudgetEndpoints();
-app.MapCategoryEndpoints();
-app.MapGoalEndpoints();
-app.MapHouseholdEndpoints();
-app.MapPrivacyEndpoints();
-app.MapProfileEndpoints();
-app.MapTransactionEndpoints();
-app.MapSharedExpenseEndpoints();
-
-app.UseHttpsRedirection();
-
-var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("Starting API in {Environment}", app.Environment.EnvironmentName);
-
-app.Run("http://localhost:5043");
+catch (Exception ex)
+{
+    Log.Fatal(ex, "API terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
