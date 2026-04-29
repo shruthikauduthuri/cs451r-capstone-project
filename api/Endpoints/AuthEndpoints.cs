@@ -6,93 +6,96 @@ using api;
 using api.Contracts.Auth;
 using api.Models;
 using Supabase;
-using Microsoft.Extensions.Logging;
+using api.Services.Auth;
+using api.Services.Profile;
 
 namespace api.Endpoints
 {
     public static class AuthEndpoints
     {
         public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapPost("/api/auth/register", Register);
+        app.MapPost("/api/auth/login", Login);
+        app.MapPost("/api/auth/logout", Logout);
+        app.MapPost("/api/auth/reset-password", ResetPassword);
+        app.MapGet("/api/auth/session", GetSession);
+    }
+
+    public static async Task<IResult> Register(
+        IAuthService auth,
+        IProfileService profiles,
+        RegisterRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+            return Results.BadRequest("Email is required");
+
+        var (userId, email, token) = await auth.SignUp(request.Email, request.Password);
+
+        if (userId == null)
+            return Results.BadRequest("Registration failed");
+
+        if (!long.TryParse(userId, out _))
+            return Results.BadRequest("Invalid user ID");
+
+        var profile = new Profile
         {
-            app.MapPost("/api/auth/register", async (Client supabase, RegisterRequest request) =>
-            {
-                var auth = await supabase.Auth.SignUp(request.Email, request.Password);
+            Id = userId,
+            UserName = email!,
+            Created_at = DateTime.UtcNow
+        };
 
-                if (auth?.User == null)
-                {
-                    return Results.BadRequest("Registration failed");
-                }
-                if (string.IsNullOrWhiteSpace(auth.User.Id) || !long.TryParse(auth.User.Id, out var userProfileId))
-                {
-                    return Results.BadRequest("Invalid user ID");
-                }
-                if(string.IsNullOrWhiteSpace(request.Email))
-                {
-                    return Results.BadRequest("Email is required");
-                }
+        await profiles.CreateProfile(profile);
 
+        return Results.Ok(new
+        {
+            Token = token,
+            UserId = userId
+        });
+    }
 
-                var newProfile = new Profile
-                {
-                    Id = auth.User.Id!,
-                    UserName = auth.User.Email!,
-                    Created_at = DateTime.UtcNow
-                };
+    public static async Task<IResult> Login(
+        IAuthService auth,
+        LoginRequest request)
+    {
+        var (userId, _, token) = await auth.SignIn(request.Email, request.Password);
 
-                var profileResponse = await supabase.From<Profile>()
-                    .Insert(newProfile);
+        if (userId == null)
+            return Results.Unauthorized();
 
-                return Results.Ok(new
-                {
-                    Token = auth.AccessToken,
-                    UserId = auth.User.Id
-                });
-            });
+        return Results.Ok(new
+        {
+            Token = token,
+            UserId = userId
+        });
+    }
 
-            app.MapPost("/api/auth/login", async (Client supabase, LoginRequest request) =>
-            {
+    public static async Task<IResult> Logout(IAuthService auth)
+    {
+        await auth.SignOut();
+        return Results.Ok();
+    }
 
-                var auth = await supabase.Auth.SignIn(request.Email, request.Password);
+    public static async Task<IResult> ResetPassword(
+        IAuthService auth,
+        ResetPasswordRequest request)
+    {
+        await auth.ResetPassword(request.Email);
+        return Results.Ok("Password reset email sent.");
+    }
 
-                if (auth?.User == null)
-                {
-                    return Results.Unauthorized();
-                }
+    public static Task<IResult> GetSession(IAuthService auth)
+    {
+        var session = auth.GetSession();
 
+        if (session == null)
+            return Task.FromResult(Results.Unauthorized());
 
-                return Results.Ok(new
-                {
-                    Token = auth.AccessToken,
-                    UserId = auth.User.Id
-                });
-            });
-
-            app.MapPost("/api/auth/logout", async (Client supabase) =>
-            {
-                await supabase.Auth.SignOut();
-                return Results.Ok();
-            });
-
-            app.MapPost("/api/auth/reset-password", async (Client supabase, ResetPasswordRequest request) =>
-            {
-                await supabase.Auth.ResetPasswordForEmail(request.Email);
-                return Results.Ok("Password reset email sent.");
-            });
-
-            app.MapGet("/api/auth/session", async (Client supabase) =>
-            {
-                var session = supabase.Auth.CurrentSession;
-
-                if (session == null || session.User == null)
-                {
-                    return Results.Unauthorized();
-                }
-                return Results.Ok(new
-                {
-                    session.User.Id,
-                    session.User.Email
-                });
-            });
-        }
+        return Task.FromResult(Results.Ok(new
+        {
+            Id = session.Value.UserId,
+            Email = session.Value.Email
+        }));
+    }
     }
 }

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using api.Contracts;
 using api.Models;
 using Supabase;
-using Microsoft.Extensions.Logging;
 using api.Contracts.PrivacyRules;
 
 namespace api.Endpoints

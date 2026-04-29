@@ -6,7 +6,6 @@ using api;
 using api.Contracts;
 using api.Models;
 using Supabase;
-using Microsoft.Extensions.Logging;
 using api.Contracts.Category;
 
 namespace api.Endpoints
