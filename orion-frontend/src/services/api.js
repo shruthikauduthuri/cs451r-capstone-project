@@ -2,7 +2,7 @@ import { supabase } from "../supabaseClient";
 
 
 const DEFAULT_DOTNET_BASE_URL = "http://localhost:5043";
-const DEFAULT_FLASK_BASE_URL = "http://127.0.0.1:5000";
+const DEFAULT_FLASK_BASE_URL = "http://127.0.0.1:5050";
 const GEMINI_ENDPOINT = "/gemini-response";
 
 function getDotnetBaseUrl() {
@@ -439,6 +439,8 @@ export async function sendGeminiMessage(message, options = {}) {
 		throw new Error("Message is required.");
 	}
 
+	const userId = options.userId || null;
+
 	const response = await fetch(`${getFlaskBaseUrl()}${GEMINI_ENDPOINT}`, {
 		method: "POST",
 		headers: {
@@ -446,7 +448,7 @@ export async function sendGeminiMessage(message, options = {}) {
 			Accept: "application/json",
 			...(options.headers || {}),
 		},
-		body: JSON.stringify({ message: trimmedMessage }),
+		body: JSON.stringify({ message: trimmedMessage, user_id: userId }),
 		signal: options.signal,
 	});
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthProvider";
 import { supabase } from "../supabaseClient";
 import { useSnackbar } from "../components/Snackbar";
 import "./Settings.css";

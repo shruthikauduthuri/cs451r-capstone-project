@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthProvider";
 import { useOrionStore } from "../data/useOrionStore";
 import { downloadSavingsReport } from "../utils/downloadReport";
 import "./Savings.css";

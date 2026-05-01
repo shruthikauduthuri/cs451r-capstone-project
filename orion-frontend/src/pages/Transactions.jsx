@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useOrionStore } from "../data/useOrionStore";
 import { downloadTransactionsReport } from "../utils/downloadReport";
 import "./Transactions.css";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthProvider";
 import { supabase } from "../supabaseClient";
 
 const TYPE_OPTIONS = ["expense", "income"];

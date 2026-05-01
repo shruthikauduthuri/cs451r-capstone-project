@@ -1,4 +1,4 @@
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthProvider";
 import { useOrionStore } from "../data/useOrionStore";
 import { SpendingByCategoryPie, BudgetStatusDoughnut, SpendingTrendArea } from "../components/DashboardCharts";
 import { downloadTextReport } from "../utils/downloadReport";

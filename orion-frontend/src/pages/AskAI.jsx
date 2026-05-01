@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
 import { sendGeminiMessage } from "../services/api";
+import { AuthContext } from "../context/AuthContext";
 import "./AskAI.css";
 
 const starterMessages = [
@@ -24,8 +25,10 @@ export default function AskAI() {
 	const [isSending, setIsSending] = useState(false);
 	const [errorMessage, setErrorMessage] = useState("");
 	const threadEndRef = useRef(null);
+	const { session } = useContext(AuthContext);
 
 	const hasMessages = messages.length > 0;
+	const userId = session?.user?.id || null;
 
 	useEffect(() => {
 		threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -50,7 +53,7 @@ export default function AskAI() {
 		setIsSending(true);
 
 		try {
-			const responseText = await sendGeminiMessage(cleanedText);
+			const responseText = await sendGeminiMessage(cleanedText, { userId });
 
 			setMessages((prev) => [
 				...prev,

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AuthProvider, useAuth } from "./context/AuthProvider";
 import { SnackbarProvider } from "./components/Snackbar";
 import MainLayout from "./layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
