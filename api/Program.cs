@@ -55,6 +55,10 @@ try
         );
     });
 
+// Register Auth and Profile services
+builder.Services.AddScoped<api.Services.Auth.IAuthService, api.Services.Auth.SupabaseAuthService>();
+builder.Services.AddScoped<api.Services.Profile.IProfileService, api.Services.Profile.SupabaseProfileService>();
+
     var app = builder.Build();
 
     if (app.Environment.IsDevelopment())
