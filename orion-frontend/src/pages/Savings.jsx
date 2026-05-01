@@ -12,16 +12,6 @@ const VISIBILITY_OPTIONS = [
   { value: "private", label: "Only me" },
 ];
 
-function canSeeItem(item, userRole) {
-  const vis = item.visibility || "household";
-  if (vis === "household") return true;
-  if (vis === "private") return false;
-  if (vis === "admin-only") return userRole === "admin";
-  if (vis === "no-children") return userRole !== "child";
-  if (vis === "no-roommates") return userRole !== "roommate";
-  return true;
-}
-
 function formatMoney(n) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -36,17 +26,18 @@ export default function Savings() {
   const [form, setForm] = useState({
     name: "",
     targetAmount: "",
-    linkedCategory: categories[0] || "Other",
+    deadline: "",
     visibility: "household",
   });
 
-  const visibleGoals = useMemo(
-    () => goals.filter((g) => hasRole("admin") || canSeeItem(g, profile?.role)),
-    [goals, profile]
-  );
+  // Goals from Supabase use snake_case: target_amount, current_amount
+  const visibleGoals = useMemo(() => {
+    if (hasRole("admin")) return goals;
+    return goals; // all users see all their own goals for now
+  }, [goals, profile]);
 
   const totalSaved = useMemo(
-    () => visibleGoals.reduce((sum, g) => sum + Number(g.currentAmount || 0), 0),
+    () => visibleGoals.reduce((sum, g) => sum + Number(g.current_amount || 0), 0),
     [visibleGoals]
   );
 
@@ -55,29 +46,36 @@ export default function Savings() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     const targetNum = Number(form.targetAmount);
     if (!form.name.trim()) return alert("Goal name is required.");
     if (!targetNum || targetNum <= 0) return alert("Target amount must be > 0.");
 
-    addGoal({
-      id: crypto.randomUUID(),
+    const result = await addGoal({
       name: form.name.trim(),
       targetAmount: targetNum,
       currentAmount: 0,
-      linkedCategory: form.linkedCategory,
-      description: "",
-      contributors: [],
-      visibility: form.visibility,
-      createdBy: user?.id,
+      deadline: form.deadline || null,
     });
 
-    setForm({ name: "", targetAmount: "", linkedCategory: categories[0] || "Other", visibility: "household" });
+    if (!result.ok) {
+      alert(result.message || "Failed to create goal.");
+      return;
+    }
+
+    setForm({ name: "", targetAmount: "", deadline: "", visibility: "household" });
   }
 
   function handleDownloadReport() {
-    downloadSavingsReport({ goals: visibleGoals });
+    // Normalize for report utility
+    const reportGoals = visibleGoals.map((g) => ({
+      ...g,
+      name: g.name,
+      currentAmount: g.current_amount,
+      targetAmount: g.target_amount,
+    }));
+    downloadSavingsReport({ goals: reportGoals });
   }
 
   return (
@@ -94,7 +92,11 @@ export default function Savings() {
             </svg>
             Download Report
           </button>
-          <button type="button" className="btn-gradient" onClick={() => document.getElementById("sv-add")?.scrollIntoView({ behavior: "smooth" })}>
+          <button
+            type="button"
+            className="btn-gradient"
+            onClick={() => document.getElementById("sv-add")?.scrollIntoView({ behavior: "smooth" })}
+          >
             + Add Goal
           </button>
         </div>
@@ -123,23 +125,18 @@ export default function Savings() {
           </label>
           <label className="sv-f">
             Target amount
-            <input name="targetAmount" value={form.targetAmount} onChange={onChange} placeholder="2000" inputMode="decimal" required />
+            <input
+              name="targetAmount"
+              value={form.targetAmount}
+              onChange={onChange}
+              placeholder="2000"
+              inputMode="decimal"
+              required
+            />
           </label>
           <label className="sv-f">
-            Linked category
-            <select name="linkedCategory" value={form.linkedCategory} onChange={onChange}>
-              {categories.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-          </label>
-          <label className="sv-f">
-            Who can see this?
-            <select name="visibility" value={form.visibility} onChange={onChange}>
-              {VISIBILITY_OPTIONS.map((v) => (
-                <option key={v.value} value={v.value}>{v.label}</option>
-              ))}
-            </select>
+            Deadline (optional)
+            <input type="date" name="deadline" value={form.deadline} onChange={onChange} />
           </label>
           <button type="submit" className="btn-gradient sv-create">
             Create goal
@@ -152,11 +149,12 @@ export default function Savings() {
 
 function GoalCard({ goal, isAdmin, onRemove, onContribute, onVisibilityChange }) {
   const [amount, setAmount] = useState("");
-  const progress = Math.min(100, Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100));
-  const remaining = Math.max(0, Number(goal.targetAmount) - Number(goal.currentAmount));
-  const contributors = goal.contributors?.length ? goal.contributors : [];
 
-  const visLabel = VISIBILITY_OPTIONS.find((v) => v.value === (goal.visibility || "household"))?.label || "Everyone";
+  // Supabase uses snake_case
+  const currentAmount = Number(goal.current_amount || 0);
+  const targetAmount = Number(goal.target_amount || 0);
+  const progress = targetAmount > 0 ? Math.min(100, Math.round((currentAmount / targetAmount) * 100)) : 0;
+  const remaining = Math.max(0, targetAmount - currentAmount);
 
   function submitContribution(e) {
     e.preventDefault();
@@ -181,14 +179,18 @@ function GoalCard({ goal, isAdmin, onRemove, onContribute, onVisibilityChange })
               Remove
             </button>
           </div>
-          {goal.description ? <p className="sv-goal-desc">{goal.description}</p> : null}
+          {goal.deadline && (
+            <p className="sv-goal-desc">
+              Deadline: {new Date(goal.deadline + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="sv-goal-stats">
         <div>
-          <p className="sv-goal-amt">{formatMoney(goal.currentAmount)}</p>
-          <p className="sv-goal-of">of {formatMoney(goal.targetAmount)} goal</p>
+          <p className="sv-goal-amt">{formatMoney(currentAmount)}</p>
+          <p className="sv-goal-of">of {formatMoney(targetAmount)} goal</p>
         </div>
         <span className="sv-goal-pct">{progress}%</span>
       </div>
@@ -197,51 +199,6 @@ function GoalCard({ goal, isAdmin, onRemove, onContribute, onVisibilityChange })
         <div className="sv-goal-bar-fill" style={{ width: `${progress}%` }} />
       </div>
       <p className="sv-goal-remain">{formatMoney(remaining)} remaining to reach goal</p>
-
-      {contributors.length > 0 && (
-        <>
-          <p className="sv-contrib-label">Contributors:</p>
-          <p className="sv-contrib-names">
-            {contributors.map((n) => (
-              <span key={n} className="sv-contrib-link">{n}</span>
-            ))}
-          </p>
-        </>
-      )}
-
-      {isAdmin && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          marginTop: 12,
-          paddingTop: 12,
-          borderTop: "1px solid #e2e8f0",
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ flexShrink: 0, color: "#94a3b8" }}>
-            <rect x="3" y="11" width="18" height="11" rx="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          <span style={{ fontSize: "0.8125rem", color: "#94a3b8" }}>Visibility:</span>
-          <select
-            value={goal.visibility || "household"}
-            onChange={(e) => onVisibilityChange(e.target.value)}
-            style={{
-              padding: "4px 8px",
-              borderRadius: 6,
-              border: "1px solid #334155",
-              background: "#0f172a",
-              color: "#f8fafc",
-              fontSize: "0.8125rem",
-              cursor: "pointer",
-            }}
-          >
-            {VISIBILITY_OPTIONS.map((v) => (
-              <option key={v.value} value={v.value}>{v.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       <form className="sv-contrib-form" onSubmit={submitContribution}>
         <input

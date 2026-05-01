@@ -41,7 +41,6 @@ const MONTH_OPTIONS = generateMonthOptions();
 
 export default function Transactions() {
   const { categories, transactions, addTransaction, removeTransaction } = useOrionStore();
-
   const { user, profile } = useAuth();
   const [members, setMembers] = useState([]);
 
@@ -73,17 +72,30 @@ export default function Transactions() {
   const [selectedMonth, setSelectedMonth] = useState(
     `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`
   );
-    const [form, setForm] = useState({
+
+  const [form, setForm] = useState({
     type: "expense",
     amount: "",
-    category: "Groceries",
+    category: "",
     date: new Date().toISOString().slice(0, 10),
     description: "",
     member: "",
   });
 
+  // Set default category once categories load
+  useEffect(() => {
+    if (categories.length > 0 && !form.category) {
+      setForm((prev) => ({ ...prev, category: categories[0] }));
+    }
+  }, [categories]);
+
+  // Helper: get display name for a transaction's category
+  function getCategoryName(t) {
+    return t.categories?.name || "Other";
+  }
+
   const filtered = useMemo(
-    () => transactions.filter((t) => monthKey(t.date) === selectedMonth),
+    () => transactions.filter((t) => monthKey(t.transaction_date) === selectedMonth),
     [transactions, selectedMonth]
   );
 
@@ -98,29 +110,38 @@ export default function Transactions() {
     setForm((prev) => ({ ...prev, [name]: value }));
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault();
     const amountNum = Number(form.amount);
     if (!amountNum || amountNum <= 0) {
       alert("Please enter a valid amount greater than 0.");
       return;
     }
-    addTransaction({
-      id: crypto.randomUUID(),
+    const result = await addTransaction({
       type: form.type,
       amount: amountNum,
       category: form.category,
       date: form.date,
-      description: form.description.trim() || "(no description)",
+      description: form.description.trim() || "",
       member: form.member,
     });
+    if (!result.ok) {
+      alert(result.message || "Failed to save transaction.");
+      return;
+    }
     setForm((prev) => ({ ...prev, amount: "", description: "" }));
   }
 
   function handleDownloadReport() {
-    const monthObj = MONTH_OPTIONS.find(m => m.key === selectedMonth);
+    const monthObj = MONTH_OPTIONS.find((m) => m.key === selectedMonth);
+    // Normalize for report
+    const reportTx = transactions.map((t) => ({
+      ...t,
+      date: t.transaction_date,
+      category: getCategoryName(t),
+    }));
     downloadTransactionsReport({
-      transactions,
+      transactions: reportTx,
       selectedMonth,
       monthLabel: monthObj?.label || selectedMonth,
     });
@@ -133,7 +154,11 @@ export default function Transactions() {
           <h1 className="orion-page-title">Transactions</h1>
           <p className="orion-page-sub">Track all income and expenses</p>
         </div>
-        <button type="button" className="btn-gradient tx-add-btn" onClick={() => document.getElementById("tx-add-form")?.scrollIntoView({ behavior: "smooth" })}>
+        <button
+          type="button"
+          className="btn-gradient tx-add-btn"
+          onClick={() => document.getElementById("tx-add-form")?.scrollIntoView({ behavior: "smooth" })}
+        >
           <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
           Add Transaction
         </button>
@@ -186,11 +211,13 @@ export default function Transactions() {
             return (
               <li key={t.id} className="tx-row">
                 <div className="tx-row-left">
-                  <span className={isIncome ? "tx-icon tx-icon--in" : "tx-icon tx-icon--out"}>{isIncome ? "+" : "−"}</span>
+                  <span className={isIncome ? "tx-icon tx-icon--in" : "tx-icon tx-icon--out"}>
+                    {isIncome ? "+" : "−"}
+                  </span>
                   <div>
-                    <p className="tx-row-title">{t.category}</p>
+                    <p className="tx-row-title">{getCategoryName(t)}</p>
                     <p className="tx-row-meta">
-                      {formatDisplayDate(t.date)} · {t.member || "—"}
+                      {formatDisplayDate(t.transaction_date)} · {t.description || "—"}
                     </p>
                   </div>
                 </div>
@@ -199,7 +226,12 @@ export default function Transactions() {
                     {isIncome ? "+" : "-"}
                     {formatMoney(Number(t.amount))}
                   </span>
-                  <button type="button" className="tx-remove" onClick={() => removeTransaction(t.id)} title="Remove">
+                  <button
+                    type="button"
+                    className="tx-remove"
+                    onClick={() => removeTransaction(t.id)}
+                    title="Remove"
+                  >
                     ×
                   </button>
                 </div>
@@ -244,7 +276,7 @@ export default function Transactions() {
               <label className="tx-f">
                 Member
                 <select name="member" value={form.member} onChange={onChange}>
-                {members.map((m) => (
+                  {members.map((m) => (
                     <option key={m} value={m}>
                       {m}
                     </option>

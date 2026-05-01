@@ -78,7 +78,8 @@ export function SpendingByCategoryPie() {
 
   const categoryMap = {};
   expenses.forEach((t) => {
-    categoryMap[t.category] = (categoryMap[t.category] || 0) + Number(t.amount);
+    const catName = t.categories?.name || "Other";
+categoryMap[catName] = (categoryMap[catName] || 0) + Number(t.amount);
   });
 
   const pieData = Object.entries(categoryMap).map(([name, value], i) => ({
@@ -182,8 +183,7 @@ export function SpendingTrendArea() {
 
   const monthMap = {};
   expenses.forEach((t) => {
-    const d = new Date(t.date + "T12:00:00");
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const d = new Date((t.transaction_date || t.date) + "T12:00:00");    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
     if (!monthMap[key]) monthMap[key] = { key, month: label, amount: 0 };
     monthMap[key].amount += Number(t.amount);

@@ -7,15 +7,15 @@ export default function Categories() {
   const { categories, transactions, addCategory, removeCategory } = useOrionStore();
     const [name, setName] = useState("");
 
-  function onSubmit(e) {
-    e.preventDefault();
-    const res = addCategory(name);
-    if (!res.ok) {
-      alert(res.message);
-      return;
+    async function onSubmit(e) {
+      e.preventDefault();
+      const res = await addCategory(name);
+      if (!res.ok) {
+        alert(res.message);
+        return;
+      }
+      setName("");
     }
-    setName("");
-  }
 
   function handleDownloadAll() {
     downloadCategoriesReport({ categories, transactions });
