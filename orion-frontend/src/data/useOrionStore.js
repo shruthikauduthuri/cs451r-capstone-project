@@ -1,248 +1,237 @@
 import { useEffect, useState } from "react";
-import { apiTransactions, apiGoals } from "../services/api";
-import { DEFAULT_CATEGORIES } from "./store";
-
-const K_CATEGORIES = "orion_categories_v1";
-
-function readCategories() {
-	try {
-		const raw = localStorage.getItem(K_CATEGORIES);
-		return raw ? JSON.parse(raw) : DEFAULT_CATEGORIES;
-	} catch {
-		return DEFAULT_CATEGORIES;
-	}
-}
-
-function writeCategories(categories) {
-	localStorage.setItem(K_CATEGORIES, JSON.stringify(categories));
-}
-
-
-function normalizeTransaction(apiTx) {
-	return {
-		id: apiTx.Id || apiTx.id,
-		amount: apiTx.Amount ?? apiTx.amount ?? 0,
-		type: apiTx.Type || apiTx.type || "expense",
-		date: apiTx.TransactionDate || apiTx.transaction_date || apiTx.date || new Date().toISOString().split("T")[0],
-		category: apiTx.Category || apiTx.category || "Other", // TODO: map CategoryId → name once we have category lookup
-		description: apiTx.Description || apiTx.description || "",
-		member: apiTx.Member || apiTx.member || "—", // TODO: map UserId → display name
-	};
-}
-
-
-function denormalizeTransaction(tx) {
-	return {
-		Id: tx.id,
-		Amount: Number(tx.amount) || 0,
-		Type: tx.type || "expense",
-		TransactionDate: tx.date || new Date().toISOString().split("T")[0],
-		Description: tx.description || "",
-		// CategoryId and UserId would go here once we have proper mapping
-	};
-}
-
-
-function normalizeGoal(apiGoal) {
-	return {
-		id: apiGoal.Id || apiGoal.id,
-		name: apiGoal.Name || apiGoal.name || "",
-		targetAmount: apiGoal.TargetAmount ?? apiGoal.target_amount ?? 0,
-		currentAmount: apiGoal.CurrentAmount ?? apiGoal.current_amount ?? 0,
-		deadline: apiGoal.Deadline || apiGoal.deadline || new Date().toISOString().split("T")[0],
-		// frontend-only fields (not in API model yet)
-		visibility: "all", // default until we add this to the schema
-		linkedCategory: null,
-		description: "",
-		contributors: [],
-	};
-}
-
-function denormalizeGoal(goal) {
-	return {
-		Id: goal.id,
-		Name: goal.name,
-		TargetAmount: Number(goal.targetAmount) || 0,
-		CurrentAmount: Number(goal.currentAmount) || 0,
-		Deadline: goal.deadline,
-	};
-}
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthProvider";
 
 export function useOrionStore() {
-	const [categories, setCategories] = useState(() => readCategories());
-	const [transactions, setTransactions] = useState([]);
-	const [goals, setGoals] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+  const { user, loading: authLoading } = useAuth();
 
-	// fetch transactions and goals from the API on mount
-	useEffect(() => {
-		async function fetchData() {
-			try {
-				setLoading(true);
-				setError(null);
+  const [categories, setCategories] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-				const [txResponse, goalsResponse] = await Promise.all([
-					apiTransactions.list().catch(() => []),
-					apiGoals.list().catch(() => []),
-				]);
+  useEffect(() => {
+    if (authLoading) return;  // wait for auth to resolve first
+    if (!user) {
+      setCategories([]);
+      setTransactions([]);
+      setGoals([]);
+      setLoading(false);
+      return;
+    }
 
-				// normalize API responses into frontend shape
-				const normalizedTx = (Array.isArray(txResponse) ? txResponse : []).map(normalizeTransaction);
-				const normalizedGoals = (Array.isArray(goalsResponse) ? goalsResponse : []).map(normalizeGoal);
+    async function fetchAll() {
+      try {
+        setLoading(true);
+        setError(null);
 
-				setTransactions(normalizedTx);
-				setGoals(normalizedGoals);
-			} catch (err) {
-				console.error("Failed to load data from API:", err);
-				setError(err.message || "Failed to load data");
-			} finally {
-				setLoading(false);
-			}
-		}
+        const [catRes, txRes, goalRes] = await Promise.all([
+          supabase
+            .from("categories")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("name", { ascending: true }),
+          supabase
+            .from("transactions")
+            .select("*, categories(name)")
+            .eq("user_id", user.id)
+            .order("transaction_date", { ascending: false }),
+          supabase
+            .from("goals")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }),
+        ]);
 
-		fetchData();
-	}, []);
+        if (catRes.error) throw catRes.error;
+        if (txRes.error) throw txRes.error;
+        if (goalRes.error) throw goalRes.error;
 
-	// persist categories to localStorage whenever they change
-	useEffect(() => {
-		writeCategories(categories);
-	}, [categories]);
+        setCategories(catRes.data || []);
+        setTransactions(txRes.data || []);
+        setGoals(goalRes.data || []);
+      } catch (err) {
+        console.error("Failed to load data:", err);
+        setError(err.message || "Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-	const categoryOptions = categories.slice().sort();
+    fetchAll();
+}, [user, authLoading]);
 
-	// Categories (still localStorage-backed)
+  // ─── Category names for dropdowns (just strings) ─────────────────────────
+  const categoryOptions = categories.map((c) => c.name).sort();
 
-	function addCategory(name) {
-		const trimmed = name.trim();
-		if (!trimmed) return { ok: false, message: "Category cannot be empty." };
-		const exists = categories.some((c) => c.toLowerCase() === trimmed.toLowerCase());
-		if (exists) return { ok: false, message: "Category already exists." };
-		setCategories((prev) => [...prev, trimmed]);
-		return { ok: true };
-	}
+  // ─── CATEGORIES ──────────────────────────────────────────────────────────
 
-	function removeCategory(name) {
-		setCategories((prev) => prev.filter((c) => c !== name));
-		setTransactions((prev) =>
-			prev.map((t) => (t.category === name ? { ...t, category: "Other" } : t))
-		);
-	}
+  async function addCategory(name, type = "expense") {
+    const trimmed = name.trim();
+    if (!trimmed) return { ok: false, message: "Category cannot be empty." };
+    const exists = categories.some((c) => c.name.toLowerCase() === trimmed.toLowerCase());
+    if (exists) return { ok: false, message: "Category already exists." };
 
-	// Transactions (API-backed)
+    const { data, error } = await supabase
+      .from("categories")
+      .insert({ user_id: user.id, name: trimmed, type })
+      .select()
+      .single();
 
-	async function addTransaction(tx) {
-		try {
-			const payload = denormalizeTransaction(tx);
-			const created = await apiTransactions.create(payload);
-			const normalized = normalizeTransaction(created);
-			setTransactions((prev) => [normalized, ...prev]);
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to create transaction:", err);
-			return { ok: false, message: err.message || "Failed to create transaction" };
-		}
-	}
+    if (error) return { ok: false, message: error.message };
+    setCategories((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+    return { ok: true };
+  }
 
-	async function removeTransaction(id) {
-		try {
-			await apiTransactions.remove(id);
-			setTransactions((prev) => prev.filter((t) => t.id !== id));
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to delete transaction:", err);
-			return { ok: false, message: err.message || "Failed to delete transaction" };
-		}
-	}
+  async function removeCategory(name) {
+    const cat = categories.find((c) => c.name === name);
+    if (!cat) return { ok: false, message: "Category not found." };
 
-	async function updateTransaction(id, updates) {
-		try {
-			const existing = transactions.find((t) => t.id === id);
-			if (!existing) return { ok: false, message: "Transaction not found" };
+    const { error } = await supabase.from("categories").delete().eq("id", cat.id);
+    if (error) return { ok: false, message: error.message };
 
-			const merged = { ...existing, ...updates };
-			const payload = denormalizeTransaction(merged);
-			await apiTransactions.update(id, payload);
+    setCategories((prev) => prev.filter((c) => c.id !== cat.id));
+    // Update any transactions that used this category to show "Other"
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.category_id === cat.id ? { ...t, category_id: null, categories: { name: "Other" } } : t
+      )
+    );
+    return { ok: true };
+  }
 
-			setTransactions((prev) =>
-				prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-			);
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to update transaction:", err);
-			return { ok: false, message: err.message || "Failed to update transaction" };
-		}
-	}
+  // ─── TRANSACTIONS ─────────────────────────────────────────────────────────
 
-	// Goals (API-backed)
+  async function addTransaction(tx) {
+    // Find category id from name
+    const cat = categories.find((c) => c.name === tx.category);
 
-	async function addGoal(goal) {
-		try {
-			const payload = denormalizeGoal(goal);
-			const created = await apiGoals.create(payload);
-			const normalized = normalizeGoal(created);
-			setGoals((prev) => [normalized, ...prev]);
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to create goal:", err);
-			return { ok: false, message: err.message || "Failed to create goal" };
-		}
-	}
+    const payload = {
+      user_id: user.id,
+      amount: Number(tx.amount),
+      type: tx.type,
+      description: tx.description || "",
+      transaction_date: tx.date || new Date().toISOString().split("T")[0],
+      category_id: cat?.id || null,
+      household_id: tx.household_id || null,
+      account_id: tx.account_id || null,
+    };
 
-	async function removeGoal(id) {
-		try {
-			await apiGoals.remove(id);
-			setGoals((prev) => prev.filter((g) => g.id !== id));
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to delete goal:", err);
-			return { ok: false, message: err.message || "Failed to delete goal" };
-		}
-	}
+    const { data, error } = await supabase
+      .from("transactions")
+      .insert(payload)
+      .select("*, categories(name)")
+      .single();
 
-	async function updateGoal(id, updates) {
-		try {
-			const existing = goals.find((g) => g.id === id);
-			if (!existing) return { ok: false, message: "Goal not found" };
+    if (error) {
+      console.error("Failed to create transaction:", error);
+      return { ok: false, message: error.message };
+    }
 
-			const merged = { ...existing, ...updates };
-			const payload = denormalizeGoal(merged);
-			await apiGoals.update(id, payload);
+    setTransactions((prev) => [data, ...prev]);
+    return { ok: true };
+  }
 
-			setGoals((prev) =>
-				prev.map((g) => (g.id === id ? { ...g, ...updates } : g))
-			);
-			return { ok: true };
-		} catch (err) {
-			console.error("Failed to update goal:", err);
-			return { ok: false, message: err.message || "Failed to update goal" };
-		}
-	}
+  async function removeTransaction(id) {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (error) {
+      console.error("Failed to delete transaction:", error);
+      return { ok: false, message: error.message };
+    }
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    return { ok: true };
+  }
 
-	async function contributeToGoal(id, amount) {
-		const amt = Number(amount);
-		if (!amt || amt <= 0) return { ok: false, message: "Amount must be positive" };
+  async function updateTransaction(id, updates) {
+    const { error } = await supabase.from("transactions").update(updates).eq("id", id);
+    if (error) {
+      console.error("Failed to update transaction:", error);
+      return { ok: false, message: error.message };
+    }
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
+    return { ok: true };
+  }
 
-		const existing = goals.find((g) => g.id === id);
-		if (!existing) return { ok: false, message: "Goal not found" };
+  // ─── GOALS ───────────────────────────────────────────────────────────────
 
-		return updateGoal(id, { currentAmount: existing.currentAmount + amt });
-	}
+  async function addGoal(goal) {
+    const payload = {
+      user_id: user.id,
+      name: goal.name,
+      target_amount: Number(goal.targetAmount),
+      current_amount: Number(goal.currentAmount) || 0,
+      deadline: goal.deadline || null,
+    };
 
-	return {
-		categories: categoryOptions,
-		transactions,
-		goals,
-		loading,
-		error,
-		addCategory,
-		removeCategory,
-		addTransaction,
-		removeTransaction,
-		updateTransaction,
-		addGoal,
-		removeGoal,
-		updateGoal,
-		contributeToGoal,
-	};
+    const { data, error } = await supabase
+      .from("goals")
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Failed to create goal:", error);
+      return { ok: false, message: error.message };
+    }
+
+    setGoals((prev) => [data, ...prev]);
+    return { ok: true };
+  }
+
+  async function removeGoal(id) {
+    const { error } = await supabase.from("goals").delete().eq("id", id);
+    if (error) {
+      console.error("Failed to delete goal:", error);
+      return { ok: false, message: error.message };
+    }
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+    return { ok: true };
+  }
+
+  async function updateGoal(id, updates) {
+    // Map frontend field names to DB column names
+    const dbUpdates = {};
+    if (updates.targetAmount !== undefined) dbUpdates.target_amount = Number(updates.targetAmount);
+    if (updates.currentAmount !== undefined) dbUpdates.current_amount = Number(updates.currentAmount);
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
+
+    const { error } = await supabase.from("goals").update(dbUpdates).eq("id", id);
+    if (error) {
+      console.error("Failed to update goal:", error);
+      return { ok: false, message: error.message };
+    }
+    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...dbUpdates } : g)));
+    return { ok: true };
+  }
+
+  async function contributeToGoal(id, amount) {
+    const amt = Number(amount);
+    if (!amt || amt <= 0) return { ok: false, message: "Amount must be positive" };
+
+    const existing = goals.find((g) => g.id === id);
+    if (!existing) return { ok: false, message: "Goal not found" };
+
+    const newAmount = Number(existing.current_amount) + amt;
+    return updateGoal(id, { currentAmount: newAmount });
+  }
+
+  return {
+    categories: categoryOptions,
+    categoriesFull: categories, // full objects with id, type etc.
+    transactions,
+    goals,
+    loading,
+    error,
+    addCategory,
+    removeCategory,
+    addTransaction,
+    removeTransaction,
+    updateTransaction,
+    addGoal,
+    removeGoal,
+    updateGoal,
+    contributeToGoal,
+  };
 }
