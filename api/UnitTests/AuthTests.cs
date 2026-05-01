@@ -23,7 +23,7 @@ public class AuthEndpointsTests
     [Fact]
     public async Task Register_ReturnsBadRequest_WhenEmailMissing()
     {
-        var request = new RegisterRequest { Email = "", Password = "pass" };
+        var request = new AuthRequest { Email = "", Password = "pass" };
 
         var result = await AuthEndpoints.Register(
             _authMock.Object,
@@ -40,7 +40,7 @@ public class AuthEndpointsTests
         _authMock.Setup(a => a.SignUp(It.IsAny<string>(), It.IsAny<string>()))
                  .ReturnsAsync((null, null, null));
 
-        var request = new RegisterRequest { Email = "test@test.com", Password = "pass" };
+        var request = new AuthRequest { Email = "test@test.com", Password = "pass" };
 
         var result = await AuthEndpoints.Register(
             _authMock.Object,
@@ -57,7 +57,7 @@ public class AuthEndpointsTests
         _authMock.Setup(a => a.SignUp(It.IsAny<string>(), It.IsAny<string>()))
                  .ReturnsAsync(("abc", "test@test.com", "token")); // not numeric
 
-        var request = new RegisterRequest { Email = "test@test.com", Password = "pass" };
+        var request = new AuthRequest { Email = "test@test.com", Password = "pass" };
 
         var result = await AuthEndpoints.Register(
             _authMock.Object,
@@ -74,7 +74,7 @@ public class AuthEndpointsTests
         _authMock.Setup(a => a.SignUp(It.IsAny<string>(), It.IsAny<string>()))
                  .ReturnsAsync(("123", "test@test.com", "token"));
 
-        var request = new RegisterRequest { Email = "test@test.com", Password = "pass" };
+        var request = new AuthRequest { Email = "test@test.com", Password = "pass" };
 
         var result = await AuthEndpoints.Register(
             _authMock.Object,
@@ -83,7 +83,7 @@ public class AuthEndpointsTests
 
         _profileMock.Verify(p => p.CreateProfile(It.IsAny<Profile>()), Times.Once);
 
-        var ok = Assert.IsType<Ok<object>>(result);
+        var ok = Assert.IsType<Ok<AuthResponse>>(result);
     }
 
     // ---------------- LOGIN ----------------
@@ -96,7 +96,7 @@ public class AuthEndpointsTests
 
         var result = await AuthEndpoints.Login(
             _authMock.Object,
-            new LoginRequest { Email = "test@test.com", Password = "wrong" });
+            new AuthRequest { Email = "test@test.com", Password = "wrong" });
 
         Assert.IsType<UnauthorizedHttpResult>(result);
     }
@@ -109,9 +109,9 @@ public class AuthEndpointsTests
 
         var result = await AuthEndpoints.Login(
             _authMock.Object,
-            new LoginRequest { Email = "test@test.com", Password = "pass" });
+            new AuthRequest { Email = "test@test.com", Password = "pass" });
 
-        var ok = Assert.IsType<Ok<object>>(result);
+        var ok = Assert.IsType<Ok<AuthResponse>>(result);
     }
 
     // ---------------- LOGOUT ----------------
@@ -163,6 +163,6 @@ public class AuthEndpointsTests
 
         var result = await AuthEndpoints.GetSession(_authMock.Object);
 
-        var ok = Assert.IsType<Ok<object>>(result);
+        var ok = Assert.IsType<Ok<SessionResponse>>(result);
     }
 }

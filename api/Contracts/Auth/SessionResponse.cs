@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace api.Contracts.Auth
 {
-    public class LoginRequest
+    public class SessionResponse
     {
+        public string Id { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
     }
 }

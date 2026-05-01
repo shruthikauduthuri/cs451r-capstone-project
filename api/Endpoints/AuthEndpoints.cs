@@ -25,7 +25,7 @@ namespace api.Endpoints
     public static async Task<IResult> Register(
         IAuthService auth,
         IProfileService profiles,
-        RegisterRequest request)
+        AuthRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
             return Results.BadRequest("Email is required");
@@ -45,27 +45,27 @@ namespace api.Endpoints
             Created_at = DateTime.UtcNow
         };
 
-        await profiles.CreateProfile(profile);
+        await profiles.CreateProfile(profile);;
 
-        return Results.Ok(new
+        return Results.Ok(new AuthResponse
         {
-            Token = token,
+            Token = token!,
             UserId = userId
         });
     }
 
     public static async Task<IResult> Login(
         IAuthService auth,
-        LoginRequest request)
+        AuthRequest request)
     {
         var (userId, _, token) = await auth.SignIn(request.Email, request.Password);
 
         if (userId == null)
             return Results.Unauthorized();
 
-        return Results.Ok(new
+        return Results.Ok(new AuthResponse
         {
-            Token = token,
+            Token = token!,
             UserId = userId
         });
     }
@@ -91,10 +91,10 @@ namespace api.Endpoints
         if (session == null)
             return Task.FromResult(Results.Unauthorized());
 
-        return Task.FromResult(Results.Ok(new
+        return Task.FromResult(Results.Ok(new SessionResponse
         {
-            Id = session.Value.UserId,
-            Email = session.Value.Email
+            Id = session.Value.UserId!,
+            Email = session.Value.Email!
         }));
     }
     }
