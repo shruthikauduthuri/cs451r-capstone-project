@@ -9,22 +9,19 @@ export function useOrionStore() {
   const [transactions, setTransactions] = useState([]);
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [storeError, setStoreError] = useState(null);
 
   useEffect(() => {
-    if (authLoading) return;  // wait for auth to resolve first
-    if (!user) {
-      setCategories([]);
-      setTransactions([]);
-      setGoals([]);
-      setLoading(false);
-      return;
-    }
+	if (authLoading) return;
+	if (!user) {
+	  setLoading(false);
+	  return;
+	}
 
     async function fetchAll() {
       try {
         setLoading(true);
-        setError(null);
+        setStoreError(null);
 
         const [catRes, txRes, goalRes] = await Promise.all([
           supabase
@@ -53,19 +50,16 @@ export function useOrionStore() {
         setGoals(goalRes.data || []);
       } catch (err) {
         console.error("Failed to load data:", err);
-        setError(err.message || "Failed to load data");
+        setStoreError(err.message || "Failed to load data");
       } finally {
         setLoading(false);
       }
     }
 
     fetchAll();
-}, [user, authLoading]);
+}, [user?.id, authLoading]);
 
-  // ─── Category names for dropdowns (just strings) ─────────────────────────
   const categoryOptions = categories.map((c) => c.name).sort();
-
-  // ─── CATEGORIES ──────────────────────────────────────────────────────────
 
   async function addCategory(name, type = "expense") {
     const trimmed = name.trim();
@@ -73,14 +67,14 @@ export function useOrionStore() {
     const exists = categories.some((c) => c.name.toLowerCase() === trimmed.toLowerCase());
     if (exists) return { ok: false, message: "Category already exists." };
 
-    const { data, error } = await supabase
+    const { data: catData, error: catError } = await supabase
       .from("categories")
       .insert({ user_id: user.id, name: trimmed, type })
       .select()
       .single();
 
-    if (error) return { ok: false, message: error.message };
-    setCategories((prev) => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+    if (catError) return { ok: false, message: catError.message };
+    setCategories((prev) => [...prev, catData].sort((a, b) => a.name.localeCompare(b.name)));
     return { ok: true };
   }
 
@@ -88,11 +82,10 @@ export function useOrionStore() {
     const cat = categories.find((c) => c.name === name);
     if (!cat) return { ok: false, message: "Category not found." };
 
-    const { error } = await supabase.from("categories").delete().eq("id", cat.id);
-    if (error) return { ok: false, message: error.message };
+    const { error: catError } = await supabase.from("categories").delete().eq("id", cat.id);
+    if (catError) return { ok: false, message: catError.message };
 
     setCategories((prev) => prev.filter((c) => c.id !== cat.id));
-    // Update any transactions that used this category to show "Other"
     setTransactions((prev) =>
       prev.map((t) =>
         t.category_id === cat.id ? { ...t, category_id: null, categories: { name: "Other" } } : t
@@ -101,10 +94,7 @@ export function useOrionStore() {
     return { ok: true };
   }
 
-  // ─── TRANSACTIONS ─────────────────────────────────────────────────────────
-
   async function addTransaction(tx) {
-    // Find category id from name
     const cat = categories.find((c) => c.name === tx.category);
 
     const payload = {
@@ -118,42 +108,40 @@ export function useOrionStore() {
       account_id: tx.account_id || null,
     };
 
-    const { data, error } = await supabase
+    const { data: txData, error: txError } = await supabase
       .from("transactions")
       .insert(payload)
       .select("*, categories(name)")
       .single();
 
-    if (error) {
-      console.error("Failed to create transaction:", error);
-      return { ok: false, message: error.message };
+    if (txError) {
+      console.error("Failed to create transaction:", txError);
+      return { ok: false, message: txError.message };
     }
 
-    setTransactions((prev) => [data, ...prev]);
+    setTransactions((prev) => [txData, ...prev]);
     return { ok: true };
   }
 
   async function removeTransaction(id) {
-    const { error } = await supabase.from("transactions").delete().eq("id", id);
-    if (error) {
-      console.error("Failed to delete transaction:", error);
-      return { ok: false, message: error.message };
+    const { error: txError } = await supabase.from("transactions").delete().eq("id", id);
+    if (txError) {
+      console.error("Failed to delete transaction:", txError);
+      return { ok: false, message: txError.message };
     }
     setTransactions((prev) => prev.filter((t) => t.id !== id));
     return { ok: true };
   }
 
   async function updateTransaction(id, updates) {
-    const { error } = await supabase.from("transactions").update(updates).eq("id", id);
-    if (error) {
-      console.error("Failed to update transaction:", error);
-      return { ok: false, message: error.message };
+    const { error: txError } = await supabase.from("transactions").update(updates).eq("id", id);
+    if (txError) {
+      console.error("Failed to update transaction:", txError);
+      return { ok: false, message: txError.message };
     }
     setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
     return { ok: true };
   }
-
-  // ─── GOALS ───────────────────────────────────────────────────────────────
 
   async function addGoal(goal) {
     const payload = {
@@ -164,43 +152,42 @@ export function useOrionStore() {
       deadline: goal.deadline || null,
     };
 
-    const { data, error } = await supabase
+    const { data: goalData, error: goalError } = await supabase
       .from("goals")
       .insert(payload)
       .select()
       .single();
 
-    if (error) {
-      console.error("Failed to create goal:", error);
-      return { ok: false, message: error.message };
+    if (goalError) {
+      console.error("Failed to create goal:", goalError);
+      return { ok: false, message: goalError.message };
     }
 
-    setGoals((prev) => [data, ...prev]);
+    setGoals((prev) => [goalData, ...prev]);
     return { ok: true };
   }
 
   async function removeGoal(id) {
-    const { error } = await supabase.from("goals").delete().eq("id", id);
-    if (error) {
-      console.error("Failed to delete goal:", error);
-      return { ok: false, message: error.message };
+    const { error: goalError } = await supabase.from("goals").delete().eq("id", id);
+    if (goalError) {
+      console.error("Failed to delete goal:", goalError);
+      return { ok: false, message: goalError.message };
     }
     setGoals((prev) => prev.filter((g) => g.id !== id));
     return { ok: true };
   }
 
   async function updateGoal(id, updates) {
-    // Map frontend field names to DB column names
     const dbUpdates = {};
     if (updates.targetAmount !== undefined) dbUpdates.target_amount = Number(updates.targetAmount);
     if (updates.currentAmount !== undefined) dbUpdates.current_amount = Number(updates.currentAmount);
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
 
-    const { error } = await supabase.from("goals").update(dbUpdates).eq("id", id);
-    if (error) {
-      console.error("Failed to update goal:", error);
-      return { ok: false, message: error.message };
+    const { error: goalError } = await supabase.from("goals").update(dbUpdates).eq("id", id);
+    if (goalError) {
+      console.error("Failed to update goal:", goalError);
+      return { ok: false, message: goalError.message };
     }
     setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, ...dbUpdates } : g)));
     return { ok: true };
@@ -219,11 +206,11 @@ export function useOrionStore() {
 
   return {
     categories: categoryOptions,
-    categoriesFull: categories, // full objects with id, type etc.
+    categoriesFull: categories,
     transactions,
     goals,
     loading,
-    error,
+    error: storeError,
     addCategory,
     removeCategory,
     addTransaction,

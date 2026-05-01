@@ -30,8 +30,7 @@ export default function Dashboard() {
       "Recent transactions:",
       ...recentTransactions.map((t) => {
         const amt = t.type === "income" ? `+${formatMoney(t.amount)}` : `-${formatMoney(t.amount)}`;
-        return `  ${t.category} · ${t.date} · ${amt}`;
-      }),
+        return `  ${t.categories?.name || "Other"} · ${t.transaction_date} · ${amt}`;      }),
     ]);
   }
 
@@ -98,9 +97,8 @@ export default function Dashboard() {
               return (
                 <li key={t.id} className="dash-recent-item">
                   <div>
-                    <p className="dash-recent-cat">{t.category}</p>
-                    <p className="dash-recent-date">{t.date}</p>
-                  </div>
+                  <p className="dash-recent-cat">{t.categories?.name || "Other"}</p>
+                  <p className="dash-recent-date">{t.transaction_date}</p>                  </div>
                   <span className={isIncome ? "dash-recent-amt dash-recent-amt--in" : "dash-recent-amt dash-recent-amt--out"}>
                     {isIncome ? `+${formatMoney(t.amount)}` : `-${formatMoney(t.amount)}`}
                   </span>
