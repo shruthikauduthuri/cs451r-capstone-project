@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using api.Contracts.Profile;
 using api.Models;
 using Supabase;
-using Microsoft.Extensions.Logging;
 
 namespace api.Endpoints
 {

@@ -6,7 +6,6 @@ using api;
 using api.Contracts;
 using api.Models;
 using Supabase;
-using Microsoft.Extensions.Logging;
 
 namespace api.Endpoints
 {
@@ -28,19 +27,37 @@ namespace api.Endpoints
 
             app.MapGet("/api/budgets/{id}", async (Client supabase, string id) =>
             {
+                var user = supabase.Auth.CurrentUser;
+                if (user == null)
+                {
+                    return Results.Unauthorized();
+                }
                 var response = await supabase.From<Budget>().Where(b => b.Id == id).Get();
                 var budget = response.Models.FirstOrDefault();
                 if (budget == null)
                 {
-                }
-                else
-                {
+                    return Results.NotFound("Account not found");
                 }
                 return Results.Ok(budget);
             });
 
             app.MapPut("/api/budgets/{id}", async (Client supabase, string id, Budget request) =>
             {
+                var user = supabase.Auth.CurrentUser;
+                if (user == null)
+                {
+                    return Results.Unauthorized();
+                }
+
+                var accountResponse = await supabase.From<Account>()
+                    .Where(a => a.Id == id && a.UserId == user.Id)
+                    .Get();
+
+                var account = accountResponse.Models?.FirstOrDefault();
+                if (account == null)
+                {
+                    return Results.NotFound("Account not found");
+                }
                 await supabase.From<Budget>().Where(b => b.Id == id).Update(request);
                 return Results.Ok();
             });
