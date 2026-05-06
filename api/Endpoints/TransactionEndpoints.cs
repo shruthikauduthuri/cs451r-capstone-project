@@ -31,11 +31,12 @@ namespace api.Endpoints
                 var transaction = response.Models.FirstOrDefault();
                 if (transaction == null)
                 {
+                    return Results.NotFound("Transaction not found");
                 }
                 else
                 {
+                    return Results.Ok(transaction);
                 }
-                return Results.Ok(transaction);
             });
 
             app.MapPut("/api/transactions/{id}", async (Client supabase, string id, Transaction request) =>

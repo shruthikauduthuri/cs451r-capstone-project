@@ -31,11 +31,12 @@ namespace api.Endpoints
                 var goal = response.Models.FirstOrDefault();
                 if (goal == null)
                 {
+                    return Results.NotFound("Goal not found");
                 }
                 else
                 {
+                    return Results.Ok(goal);
                 }
-                return Results.Ok(goal);
             });
 
             app.MapPut("/api/goals/{id}", async (Client supabase, string id, Goal request) =>
