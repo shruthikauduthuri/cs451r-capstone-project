@@ -102,7 +102,7 @@ pip install -r requirements.txt
 python app.py
 ```
 
-The API will run at: `http://localhost:5043`
+The API will run at: http://localhost:5033
 
 ### 3. Start the Gemini AI Service
 
